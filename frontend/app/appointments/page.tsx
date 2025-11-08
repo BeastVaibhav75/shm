@@ -42,6 +42,15 @@ interface Appointment {
   createdAt: string
 }
 
+// Minimal patient type used for selection in appointment modal
+interface Patient {
+  _id: string
+  name: string
+  contact: string
+  age?: number
+  gender?: string
+}
+
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
@@ -423,7 +432,7 @@ export default function AppointmentsPage() {
                       className="input w-full"
                     >
                       <option value="">Select patient</option>
-                      {patients.map((p: any) => (
+                      {patients.map((p) => (
                         <option key={p._id} value={p._id}>
                           {p.name} ({p.contact})
                         </option>
