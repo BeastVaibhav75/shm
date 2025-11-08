@@ -408,17 +408,11 @@ export default function AppointmentsPage() {
                   Book Appointment
                 </h3>
 
-                {/* Load patients on modal open */}
-                {patients.length === 0 && (
-                  <div className="mb-3">
-                    <button
-                      className="btn btn-outline btn-sm"
-                      onClick={fetchPatientsList}
-                    >
-                      Load Patients
-                    </button>
-                  </div>
-                )}
+useEffect(() => {
+    if (showAddModal) {
+      fetchPatientsList()
+    }
+  }, [showAddModal])
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
