@@ -55,7 +55,12 @@ const addTreatmentValidation = [
     'Other'
   ]).withMessage('Valid treatment type is required'),
   body('notes').trim().isLength({ min: 5 }).withMessage('Treatment notes must be at least 5 characters'),
-  body('cost').optional().isFloat({ min: 0 }).withMessage('Cost must be a positive number')
+  body('cost').optional().isFloat({ min: 0 }).withMessage('Cost must be a positive number'),
+  body('gstPercent').optional().isFloat({ min: 0, max: 100 }).withMessage('GST must be 0-100'),
+  body('discountPercent').optional().isFloat({ min: 0, max: 100 }).withMessage('Discount must be 0-100'),
+  body('usedItems').optional().isArray().withMessage('usedItems must be an array'),
+  body('usedItems.*.itemId').optional().isMongoId().withMessage('itemId must be a valid ID'),
+  body('usedItems.*.quantity').optional().isFloat({ min: 0 }).withMessage('quantity must be positive')
 ];
 
 // All routes require authentication

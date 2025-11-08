@@ -24,6 +24,10 @@ app.use('/api/treatment-plans', require('./routes/treatmentPlans'));
 app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/expenses', require('./routes/expenses'));
+// Mount analytics, reminders, and reports
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/reminders', require('./routes/reminders'));
+app.use('/api/reports', require('./routes/reports'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

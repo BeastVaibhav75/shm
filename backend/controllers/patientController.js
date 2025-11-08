@@ -2,6 +2,8 @@ const Patient = require('../models/Patient');
 const User = require('../models/User');
 const { validationResult } = require('express-validator');
 const { sendPatientRegistrationNotification } = require('../utils/whatsapp');
+const Invoice = require('../models/Invoice');
+const InventoryItem = require('../models/InventoryItem');
 
 // Get all patients with filtering and pagination
 const getAllPatients = async (req, res) => {
@@ -241,7 +243,7 @@ const addTreatmentRecord = async (req, res) => {
       });
     }
 
-    const { type, notes, cost } = req.body;
+    const { type, notes, cost, usedItems = [], gstPercent = 0, discountPercent = 0 } = req.body;
 
     const patient = await Patient.findById(req.params.id);
     if (!patient) {
@@ -252,20 +254,53 @@ const addTreatmentRecord = async (req, res) => {
       type,
       notes,
       cost: cost || 0,
-      addedBy: req.user._id
+      addedBy: req.user._id,
+      usedItems: usedItems.map(ui => ({ item: ui.itemId, quantity: ui.quantity || 0 }))
     };
 
     patient.treatmentHistory.push(treatmentRecord);
     await patient.save();
 
+    // Get the just-added treatment record id
+    const tr = patient.treatmentHistory[patient.treatmentHistory.length - 1];
+
+    // Auto-generate invoice for this treatment
+    const invoice = new Invoice({
+      patient: patient._id,
+      doctor: req.user._id,
+      treatmentRecordId: tr._id,
+      items: [{ description: type, quantity: 1, unitPrice: cost || 0 }],
+      gstPercent,
+      discountPercent
+    });
+    await invoice.save();
+
+    // Link invoice back to treatment record
+    tr.invoice = invoice._id;
+    await patient.save();
+
+    // Deduct inventory stock for used items
+    const lowStock = [];
+    for (const ui of usedItems) {
+      const item = await InventoryItem.findById(ui.itemId);
+      if (!item) continue;
+      item.quantity = Math.max(0, (item.quantity || 0) - (ui.quantity || 0));
+      item.usageHistory.push({ quantity: ui.quantity || 0, patient: patient._id, treatmentRecordId: tr._id });
+      await item.save();
+      if (item.quantity <= (item.reorderLevel || 0)) lowStock.push(item);
+    }
+
     // Populate the updated patient
     const updatedPatient = await Patient.findById(patient._id)
       .populate('assignedDoctor', 'name specialization')
-      .populate('treatmentHistory.addedBy', 'name');
+      .populate('treatmentHistory.addedBy', 'name')
+      .populate('treatmentHistory.invoice');
 
     res.json({ 
       message: 'Treatment record added successfully', 
-      patient: updatedPatient 
+      patient: updatedPatient,
+      invoice,
+      lowStock
     });
   } catch (error) {
     console.error('Add treatment record error:', error);

@@ -83,6 +83,24 @@ const navigation = [
     href: '/reports',
     icon: ClipboardList,
     roles: ['admin', 'doctor', 'receptionist']
+  },
+  {
+    name: 'Invoices',
+    href: '/invoices',
+    icon: ClipboardList,
+    roles: ['admin', 'doctor', 'receptionist']
+  },
+  {
+    name: 'Inventory',
+    href: '/inventory',
+    icon: Building2,
+    roles: ['admin']
+  },
+  {
+    name: 'Expenses',
+    href: '/expenses',
+    icon: Settings,
+    roles: ['admin']
   }
 ]
 

@@ -89,6 +89,12 @@ const patientSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  dateOfBirth: {
+    type: Date
+  },
+  anniversaryDate: {
+    type: Date
+  },
   isActive: {
     type: Boolean,
     default: true
