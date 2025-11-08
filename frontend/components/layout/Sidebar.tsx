@@ -129,7 +129,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          'h-full w-full overflow-y-auto z-40', // Ensure sidebar is above overlay
+          'h-full w-full overflow-y-auto',
           isOpen ? 'block' : 'hidden lg:block'
         )}
       >

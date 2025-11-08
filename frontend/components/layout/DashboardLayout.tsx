@@ -35,21 +35,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-secondary-50">
+      {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        )}
       >
         <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
       </div>
+
+      {/* Main content */}
       <div className="flex flex-col flex-1 lg:pl-64">
-        <div className="sticky top-0 z-40 h-16 bg-white border-b border-border flex items-center">
-          <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-        </div>
-        <main className="flex-1 bg-secondary-50 overflow-x-hidden p-6">
-          <div className="max-w-7xl mx-auto w-full">{children}</div>
-        </main>
+        <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <main className="flex-1 bg-secondary-50 p-6">{children}</main>
       </div>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   )
 }
