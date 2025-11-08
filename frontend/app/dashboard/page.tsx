@@ -252,36 +252,38 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Finance & Inventory Widgets */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            <div onClick={() => router.push('/invoices')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-secondary-600">Income (Today)</p>
-                  <p className="text-2xl font-bold text-secondary-900 mt-1">₹{finance?.incomeToday || 0}</p>
+          {/* Finance & Inventory Widgets (Admin only) */}
+          {user?.role === 'admin' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              <div onClick={() => router.push('/invoices')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-secondary-600">Income (Today)</p>
+                    <p className="text-2xl font-bold text-secondary-900 mt-1">₹{finance?.incomeToday || 0}</p>
+                  </div>
+                  <div className="p-3 bg-success-100 rounded-full"><IndianRupee className="h-5 w-5 text-success-600" /></div>
                 </div>
-                <div className="p-3 bg-success-100 rounded-full"><IndianRupee className="h-5 w-5 text-success-600" /></div>
+              </div>
+              <div onClick={() => router.push('/invoices')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-secondary-600">Income (Monthly)</p>
+                    <p className="text-2xl font-bold text-secondary-900 mt-1">₹{finance?.incomeMonthly || 0}</p>
+                  </div>
+                  <div className="p-3 bg-primary-100 rounded-full"><TrendingUp className="h-5 w-5 text-primary-600" /></div>
+                </div>
+              </div>
+              <div onClick={() => router.push('/inventory')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-secondary-600">Low Stock Items</p>
+                    <p className="text-2xl font-bold text-secondary-900 mt-1">{finance?.lowStockCount || 0}</p>
+                  </div>
+                  <div className="p-3 bg-warning-100 rounded-full"><AlertTriangle className="h-5 w-5 text-warning-600" /></div>
+                </div>
               </div>
             </div>
-            <div onClick={() => router.push('/invoices')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-secondary-600">Income (Monthly)</p>
-                  <p className="text-2xl font-bold text-secondary-900 mt-1">₹{finance?.incomeMonthly || 0}</p>
-                </div>
-                <div className="p-3 bg-primary-100 rounded-full"><TrendingUp className="h-5 w-5 text-primary-600" /></div>
-              </div>
-            </div>
-            <div onClick={() => router.push('/inventory')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-secondary-600">Low Stock Items</p>
-                  <p className="text-2xl font-bold text-secondary-900 mt-1">{finance?.lowStockCount || 0}</p>
-                </div>
-                <div className="p-3 bg-warning-100 rounded-full"><AlertTriangle className="h-5 w-5 text-warning-600" /></div>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Quick Actions */}
           <div className="bg-white rounded-lg border border-secondary-200 shadow-sm h-full">
