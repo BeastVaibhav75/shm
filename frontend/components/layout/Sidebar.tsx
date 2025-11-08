@@ -120,11 +120,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={onToggle}
         />
       )}
@@ -132,7 +129,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          'h-full w-full overflow-y-auto',
+          'h-full w-full overflow-y-auto z-40', // Ensure sidebar is above overlay
           isOpen ? 'block' : 'hidden lg:block'
         )}
       >
