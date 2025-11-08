@@ -24,6 +24,10 @@ const medicineSchema = new mongoose.Schema({
 });
 
 const prescriptionSchema = new mongoose.Schema({
+  caseId: {
+    type: String,
+    index: true
+  },
   patient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Patient',
@@ -66,5 +70,6 @@ const prescriptionSchema = new mongoose.Schema({
 prescriptionSchema.index({ patient: 1 });
 prescriptionSchema.index({ doctor: 1 });
 prescriptionSchema.index({ appointment: 1 });
+prescriptionSchema.index({ caseId: 1 });
 
 module.exports = mongoose.model('Prescription', prescriptionSchema);

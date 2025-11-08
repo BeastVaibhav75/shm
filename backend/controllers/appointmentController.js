@@ -1,6 +1,9 @@
 const Appointment = require('../models/Appointment');
 const Patient = require('../models/Patient');
 const User = require('../models/User');
+const Prescription = require('../models/Prescription');
+const TreatmentPlan = require('../models/TreatmentPlan');
+const Invoice = require('../models/Invoice');
 const { validationResult } = require('express-validator');
 const { 
   sendAppointmentConfirmation, 
@@ -51,6 +54,13 @@ const getAllAppointments = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
+    // Backfill missing caseId for legacy records
+    for (const appt of appointments) {
+      if (!appt.caseId) {
+        await appt.save(); // pre-save hook generates caseId
+      }
+    }
+
     const total = await Appointment.countDocuments(filter);
 
     res.json({
@@ -82,6 +92,81 @@ const getAppointmentById = async (req, res) => {
   } catch (error) {
     console.error('Get appointment error:', error);
     res.status(500).json({ message: 'Failed to fetch appointment' });
+  }
+};
+
+// Get appointment by Case ID with aggregated data
+const getAppointmentByCaseId = async (req, res) => {
+  try {
+    const { case_id } = req.params;
+    const appointment = await Appointment.findOne({ caseId: case_id })
+      .populate('patient', 'name contact age gender issue')
+      .populate('doctor', 'name specialization phone');
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    const prescriptions = await Prescription.find({
+      $or: [{ appointment: appointment._id }, { caseId: case_id }]
+    });
+    const treatmentPlans = await TreatmentPlan.find({
+      $or: [{ patient: appointment.patient }, { caseId: case_id }]
+    });
+    const invoices = await Invoice.find({ caseId: case_id });
+
+    res.json({
+      appointment,
+      prescriptions,
+      treatmentPlans,
+      invoices
+    });
+  } catch (error) {
+    console.error('Get appointment by caseId error:', error);
+    res.status(500).json({ message: 'Failed to fetch case data' });
+  }
+};
+
+// Save bill for a caseId
+const saveBillForCase = async (req, res) => {
+  try {
+    const { case_id } = req.params;
+    const appointment = await Appointment.findOne({ caseId: case_id }).populate('patient').populate('doctor');
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+
+    const { items = [], gstPercent = 0, discountPercent = 0, notes = '' } = req.body;
+
+    const invoice = new Invoice({
+      caseId: case_id,
+      patient: appointment.patient._id,
+      doctor: appointment.doctor?._id,
+      items,
+      gstPercent,
+      discountPercent,
+      notes
+    });
+    await invoice.save();
+    res.status(201).json({ message: 'Bill saved', invoice });
+  } catch (error) {
+    console.error('Save bill error:', error);
+    res.status(500).json({ message: 'Failed to save bill' });
+  }
+};
+
+// Close appointment case
+const closeAppointmentCase = async (req, res) => {
+  try {
+    const { case_id } = req.params;
+    const appointment = await Appointment.findOneAndUpdate(
+      { caseId: case_id },
+      { status: 'completed', updatedBy: req.user._id },
+      { new: true }
+    );
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    res.json({ message: 'Appointment marked as completed', appointment });
+  } catch (error) {
+    console.error('Close appointment error:', error);
+    res.status(500).json({ message: 'Failed to close appointment' });
   }
 };
 
@@ -362,9 +447,12 @@ const getDoctorSchedule = async (req, res) => {
 module.exports = {
   getAllAppointments,
   getAppointmentById,
+  getAppointmentByCaseId,
   createAppointment,
   updateAppointment,
   deleteAppointment,
   getAppointmentStats,
-  getDoctorSchedule
+  getDoctorSchedule,
+  saveBillForCase,
+  closeAppointmentCase
 };

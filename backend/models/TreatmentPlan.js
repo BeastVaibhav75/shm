@@ -38,6 +38,10 @@ const treatmentStepSchema = new mongoose.Schema({
 });
 
 const treatmentPlanSchema = new mongoose.Schema({
+  caseId: {
+    type: String,
+    index: true
+  },
   patient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Patient',
@@ -86,5 +90,6 @@ const treatmentPlanSchema = new mongoose.Schema({
 treatmentPlanSchema.index({ patient: 1 });
 treatmentPlanSchema.index({ doctor: 1 });
 treatmentPlanSchema.index({ status: 1 });
+treatmentPlanSchema.index({ caseId: 1 });
 
 module.exports = mongoose.model('TreatmentPlan', treatmentPlanSchema);

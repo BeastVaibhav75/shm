@@ -4,11 +4,14 @@ const { authenticateToken, authorize, canAccessAppointment } = require('../middl
 const { 
   getAllAppointments, 
   getAppointmentById, 
+  getAppointmentByCaseId,
   createAppointment, 
   updateAppointment, 
   deleteAppointment, 
-  getAppointmentStats,
-  getDoctorSchedule
+  getAppointmentStats, 
+  getDoctorSchedule,
+  saveBillForCase,
+  closeAppointmentCase
 } = require('../controllers/appointmentController');
 
 const router = express.Router();
@@ -43,8 +46,11 @@ router.get('/stats', authorize('admin', 'doctor', 'receptionist'), getAppointmen
 router.get('/schedule/:doctorId/:date', authorize('admin', 'doctor', 'receptionist'), getDoctorSchedule);
 router.get('/', authorize('admin', 'doctor', 'receptionist'), getAllAppointments);
 router.get('/:id', authorize('admin', 'doctor', 'receptionist'), canAccessAppointment, getAppointmentById);
+router.get('/case/:case_id', authorize('admin', 'doctor', 'receptionist'), getAppointmentByCaseId);
 router.post('/', authorize('admin', 'doctor', 'receptionist'), createAppointmentValidation, createAppointment);
 router.put('/:id', authorize('admin', 'doctor', 'receptionist'), canAccessAppointment, updateAppointmentValidation, updateAppointment);
 router.delete('/:id', authorize('admin', 'receptionist'), canAccessAppointment, deleteAppointment);
+router.post('/:case_id/bill', authorize('admin', 'doctor'), saveBillForCase);
+router.patch('/:case_id/close', authorize('admin', 'doctor'), closeAppointmentCase);
 
 module.exports = router;

@@ -14,6 +14,7 @@ const paymentSchema = new mongoose.Schema({
 });
 
 const invoiceSchema = new mongoose.Schema({
+  caseId: { type: String, index: true },
   patient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   treatmentRecordId: { type: mongoose.Schema.Types.ObjectId },
