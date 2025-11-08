@@ -396,12 +396,12 @@ export default function AppointmentsPage() {
 
         {/* Book Appointment Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-lg shadow-xl w-full max-w-md"
+              className="bg-white rounded-lg shadow-xl w-full max-w-2xl"
             >
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-secondary-900 mb-4">
@@ -420,13 +420,13 @@ export default function AppointmentsPage() {
                   </div>
                 )}
 
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="label">Patient</label>
                     <select
                       value={newAppointment.patient}
                       onChange={(e) => setNewAppointment({ ...newAppointment, patient: e.target.value })}
-                      className="input"
+                      className="input w-full"
                     >
                       <option value="">Select patient</option>
                       {patients.map((p: any) => (
@@ -442,7 +442,7 @@ export default function AppointmentsPage() {
                     <select
                       value={newAppointment.doctor || selectedDoctor}
                       onChange={(e) => setNewAppointment({ ...newAppointment, doctor: e.target.value })}
-                      className="input"
+                      className="input w-full"
                     >
                       <option value="">Select doctor</option>
                       {doctors.map((doctor) => (
@@ -460,7 +460,7 @@ export default function AppointmentsPage() {
                         type="date"
                         value={newAppointment.date}
                         onChange={(e) => setNewAppointment({ ...newAppointment, date: e.target.value })}
-                        className="input"
+                        className="input w-full"
                       />
                     </div>
                     <div>
@@ -469,7 +469,7 @@ export default function AppointmentsPage() {
                         type="time"
                         value={newAppointment.time}
                         onChange={(e) => setNewAppointment({ ...newAppointment, time: e.target.value })}
-                        className="input"
+                        className="input w-full"
                       />
                     </div>
                   </div>
@@ -480,7 +480,7 @@ export default function AppointmentsPage() {
                       <select
                         value={newAppointment.type}
                         onChange={(e) => setNewAppointment({ ...newAppointment, type: e.target.value })}
-                        className="input"
+                        className="input w-full"
                       >
                         <option value="consultation">Consultation</option>
                         <option value="treatment">Treatment</option>
@@ -494,19 +494,19 @@ export default function AppointmentsPage() {
                         type="number"
                         value={newAppointment.duration}
                         onChange={(e) => setNewAppointment({ ...newAppointment, duration: Number(e.target.value) })}
-                        className="input"
+                        className="input w-full"
                         min={15}
                         max={240}
                       />
                     </div>
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="label">Notes</label>
                     <textarea
                       value={newAppointment.notes}
                       onChange={(e) => setNewAppointment({ ...newAppointment, notes: e.target.value })}
-                      className="input min-h-[80px] resize-none"
+                      className="input w-full min-h-[80px] resize-none"
                       placeholder="Any notes for this appointment"
                     />
                   </div>

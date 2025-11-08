@@ -311,26 +311,26 @@ export default function PatientsPage() {
 
         {/* Add Patient Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-lg shadow-xl w-full max-w-md"
+              className="bg-white rounded-lg shadow-xl w-full max-w-2xl"
             >
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-secondary-900 mb-4">
                   Add New Patient
                 </h3>
 
-                <div className="space-y-4">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
                     <label className="label">Full Name</label>
                     <input
                       type="text"
                       value={newPatient.name}
                       onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
-                      className="input"
+                      className="input w-full"
                       placeholder="Enter full name"
                     />
                   </div>
@@ -341,7 +341,7 @@ export default function PatientsPage() {
                       type="tel"
                       value={newPatient.contact}
                       onChange={(e) => setNewPatient({ ...newPatient, contact: e.target.value })}
-                      className="input"
+                      className="input w-full"
                       placeholder="Enter phone number"
                     />
                   </div>
@@ -353,7 +353,7 @@ export default function PatientsPage() {
                         type="number"
                         value={newPatient.age}
                         onChange={(e) => setNewPatient({ ...newPatient, age: e.target.value })}
-                        className="input"
+                        className="input w-full"
                         placeholder="Age in years"
                         min={0}
                       />
@@ -363,7 +363,7 @@ export default function PatientsPage() {
                       <select
                         value={newPatient.gender}
                         onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
-                        className="input"
+                        className="input w-full"
                       >
                         <option value="male">Male</option>
                         <option value="female">Female</option>
@@ -372,22 +372,22 @@ export default function PatientsPage() {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="label">Primary Issue</label>
                     <textarea
                       value={newPatient.issue}
                       onChange={(e) => setNewPatient({ ...newPatient, issue: e.target.value })}
-                      className="input min-h-[100px] resize-none"
+                      className="input w-full min-h-[100px] resize-none"
                       placeholder="Describe the primary issue"
                     />
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="label">Assign Doctor</label>
                     <select
                       value={newPatient.assignedDoctor || selectedDoctor}
                       onChange={(e) => setNewPatient({ ...newPatient, assignedDoctor: e.target.value })}
-                      className="input"
+                      className="input w-full"
                     >
                       <option value="">Select doctor</option>
                       {doctors.map((doctor) => (
@@ -399,13 +399,13 @@ export default function PatientsPage() {
                     <p className="text-xs text-secondary-500 mt-1">If you are a doctor, leaving this empty will assign to yourself.</p>
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="label">Address</label>
                     <input
                       type="text"
                       value={newPatient.address}
                       onChange={(e) => setNewPatient({ ...newPatient, address: e.target.value })}
-                      className="input"
+                      className="input w-full"
                       placeholder="Enter address"
                     />
                   </div>
@@ -416,28 +416,28 @@ export default function PatientsPage() {
                       type="tel"
                       value={newPatient.emergencyContact}
                       onChange={(e) => setNewPatient({ ...newPatient, emergencyContact: e.target.value })}
-                      className="input"
+                      className="input w-full"
                       placeholder="Enter emergency contact number"
                     />
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="label">Medical History</label>
                     <textarea
                       value={newPatient.medicalHistory}
                       onChange={(e) => setNewPatient({ ...newPatient, medicalHistory: e.target.value })}
-                      className="input min-h-[80px] resize-none"
+                      className="input w-full min-h-[80px] resize-none"
                       placeholder="Any relevant medical history"
                     />
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="label">Allergies</label>
                     <input
                       type="text"
                       value={newPatient.allergies}
                       onChange={(e) => setNewPatient({ ...newPatient, allergies: e.target.value })}
-                      className="input"
+                      className="input w-full"
                       placeholder="Known allergies"
                     />
                   </div>
