@@ -53,6 +53,16 @@ export default function AppointmentsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [patients, setPatients] = useState<any[]>([])
+  const [newAppointment, setNewAppointment] = useState({
+    patient: '',
+    doctor: '',
+    date: '',
+    time: '',
+    type: 'consultation',
+    duration: 30,
+    notes: ''
+  })
 
   useEffect(() => {
     fetchAppointments()
@@ -89,6 +99,17 @@ export default function AppointmentsPage() {
       setDoctors(response.data.doctors)
     } catch (error) {
       console.error('Failed to fetch doctors:', error)
+    }
+  }
+
+  const fetchPatientsList = async () => {
+    try {
+      const res = await api.get('/patients')
+      // patients endpoint may return an array or { patients: [] } depending on implementation in pages
+      const data = Array.isArray(res.data) ? res.data : (res.data.patients || [])
+      setPatients(data)
+    } catch (error) {
+      console.error('Failed to fetch patients:', error)
     }
   }
 
@@ -372,6 +393,182 @@ export default function AppointmentsPage() {
             </div>
           )}
         </motion.div>
+
+        {/* Book Appointment Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-lg shadow-xl w-full max-w-md"
+            >
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-secondary-900 mb-4">
+                  Book Appointment
+                </h3>
+
+                {/* Load patients on modal open */}
+                {patients.length === 0 && (
+                  <div className="mb-3">
+                    <button
+                      className="btn btn-outline btn-sm"
+                      onClick={fetchPatientsList}
+                    >
+                      Load Patients
+                    </button>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="label">Patient</label>
+                    <select
+                      value={newAppointment.patient}
+                      onChange={(e) => setNewAppointment({ ...newAppointment, patient: e.target.value })}
+                      className="input"
+                    >
+                      <option value="">Select patient</option>
+                      {patients.map((p: any) => (
+                        <option key={p._id} value={p._id}>
+                          {p.name} ({p.contact})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="label">Doctor</label>
+                    <select
+                      value={newAppointment.doctor || selectedDoctor}
+                      onChange={(e) => setNewAppointment({ ...newAppointment, doctor: e.target.value })}
+                      className="input"
+                    >
+                      <option value="">Select doctor</option>
+                      {doctors.map((doctor) => (
+                        <option key={doctor._id} value={doctor._id}>
+                          Dr. {doctor.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="label">Date</label>
+                      <input
+                        type="date"
+                        value={newAppointment.date}
+                        onChange={(e) => setNewAppointment({ ...newAppointment, date: e.target.value })}
+                        className="input"
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Time</label>
+                      <input
+                        type="time"
+                        value={newAppointment.time}
+                        onChange={(e) => setNewAppointment({ ...newAppointment, time: e.target.value })}
+                        className="input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="label">Type</label>
+                      <select
+                        value={newAppointment.type}
+                        onChange={(e) => setNewAppointment({ ...newAppointment, type: e.target.value })}
+                        className="input"
+                      >
+                        <option value="consultation">Consultation</option>
+                        <option value="treatment">Treatment</option>
+                        <option value="follow-up">Follow-up</option>
+                        <option value="emergency">Emergency</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Duration (minutes)</label>
+                      <input
+                        type="number"
+                        value={newAppointment.duration}
+                        onChange={(e) => setNewAppointment({ ...newAppointment, duration: Number(e.target.value) })}
+                        className="input"
+                        min={15}
+                        max={240}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label">Notes</label>
+                    <textarea
+                      value={newAppointment.notes}
+                      onChange={(e) => setNewAppointment({ ...newAppointment, notes: e.target.value })}
+                      className="input min-h-[80px] resize-none"
+                      placeholder="Any notes for this appointment"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowAddModal(false)
+                      setNewAppointment({
+                        patient: '',
+                        doctor: '',
+                        date: '',
+                        time: '',
+                        type: 'consultation',
+                        duration: 30,
+                        notes: ''
+                      })
+                    }}
+                    className="btn btn-outline btn-md flex-1"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const payload: any = {
+                          patient: newAppointment.patient,
+                          doctor: newAppointment.doctor || selectedDoctor,
+                          date: newAppointment.date,
+                          time: newAppointment.time,
+                          type: newAppointment.type,
+                          duration: Number(newAppointment.duration),
+                          notes: newAppointment.notes,
+                        }
+
+                        await api.post('/appointments', payload)
+                        toast.success('Appointment booked successfully')
+                        setShowAddModal(false)
+                        setNewAppointment({
+                          patient: '',
+                          doctor: '',
+                          date: '',
+                          time: '',
+                          type: 'consultation',
+                          duration: 30,
+                          notes: ''
+                        })
+                        fetchAppointments()
+                      } catch (err: any) {
+                        toast.error(err?.response?.data?.message || 'Failed to book appointment')
+                      }
+                    }}
+                    className="btn btn-primary btn-md flex-1"
+                  >
+                    Book Appointment
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   )

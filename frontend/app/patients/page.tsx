@@ -49,6 +49,18 @@ export default function PatientsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [newPatient, setNewPatient] = useState({
+    name: '',
+    contact: '',
+    age: '',
+    gender: 'male',
+    issue: '',
+    assignedDoctor: '',
+    address: '',
+    emergencyContact: '',
+    medicalHistory: '',
+    allergies: ''
+  })
 
   useEffect(() => {
     fetchPatients()
@@ -296,6 +308,208 @@ export default function PatientsPage() {
             </div>
           )}
         </motion.div>
+
+        {/* Add Patient Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-lg shadow-xl w-full max-w-md"
+            >
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-secondary-900 mb-4">
+                  Add New Patient
+                </h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="label">Full Name</label>
+                    <input
+                      type="text"
+                      value={newPatient.name}
+                      onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
+                      className="input"
+                      placeholder="Enter full name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label">Phone</label>
+                    <input
+                      type="tel"
+                      value={newPatient.contact}
+                      onChange={(e) => setNewPatient({ ...newPatient, contact: e.target.value })}
+                      className="input"
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="label">Age</label>
+                      <input
+                        type="number"
+                        value={newPatient.age}
+                        onChange={(e) => setNewPatient({ ...newPatient, age: e.target.value })}
+                        className="input"
+                        placeholder="Age in years"
+                        min={0}
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Gender</label>
+                      <select
+                        value={newPatient.gender}
+                        onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
+                        className="input"
+                      >
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label">Primary Issue</label>
+                    <textarea
+                      value={newPatient.issue}
+                      onChange={(e) => setNewPatient({ ...newPatient, issue: e.target.value })}
+                      className="input min-h-[100px] resize-none"
+                      placeholder="Describe the primary issue"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label">Assign Doctor</label>
+                    <select
+                      value={newPatient.assignedDoctor || selectedDoctor}
+                      onChange={(e) => setNewPatient({ ...newPatient, assignedDoctor: e.target.value })}
+                      className="input"
+                    >
+                      <option value="">Select doctor</option>
+                      {doctors.map((doctor) => (
+                        <option key={doctor._id} value={doctor._id}>
+                          Dr. {doctor.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-secondary-500 mt-1">If you are a doctor, leaving this empty will assign to yourself.</p>
+                  </div>
+
+                  <div>
+                    <label className="label">Address</label>
+                    <input
+                      type="text"
+                      value={newPatient.address}
+                      onChange={(e) => setNewPatient({ ...newPatient, address: e.target.value })}
+                      className="input"
+                      placeholder="Enter address"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label">Emergency Contact</label>
+                    <input
+                      type="tel"
+                      value={newPatient.emergencyContact}
+                      onChange={(e) => setNewPatient({ ...newPatient, emergencyContact: e.target.value })}
+                      className="input"
+                      placeholder="Enter emergency contact number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label">Medical History</label>
+                    <textarea
+                      value={newPatient.medicalHistory}
+                      onChange={(e) => setNewPatient({ ...newPatient, medicalHistory: e.target.value })}
+                      className="input min-h-[80px] resize-none"
+                      placeholder="Any relevant medical history"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label">Allergies</label>
+                    <input
+                      type="text"
+                      value={newPatient.allergies}
+                      onChange={(e) => setNewPatient({ ...newPatient, allergies: e.target.value })}
+                      className="input"
+                      placeholder="Known allergies"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowAddModal(false)
+                      setNewPatient({
+                        name: '',
+                        contact: '',
+                        age: '',
+                        gender: 'male',
+                        issue: '',
+                        assignedDoctor: '',
+                        address: '',
+                        emergencyContact: '',
+                        medicalHistory: '',
+                        allergies: ''
+                      })
+                    }}
+                    className="btn btn-outline btn-md flex-1"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const payload: any = {
+                          name: newPatient.name,
+                          contact: newPatient.contact,
+                          age: Number(newPatient.age),
+                          gender: newPatient.gender,
+                          issue: newPatient.issue,
+                          address: newPatient.address,
+                          emergencyContact: newPatient.emergencyContact,
+                          medicalHistory: newPatient.medicalHistory,
+                          allergies: newPatient.allergies,
+                        }
+                        const doctorId = newPatient.assignedDoctor || selectedDoctor
+                        if (doctorId) payload.assignedDoctor = doctorId
+
+                        await api.post('/patients', payload)
+                        toast.success('Patient added successfully')
+                        setShowAddModal(false)
+                        setNewPatient({
+                          name: '',
+                          contact: '',
+                          age: '',
+                          gender: 'male',
+                          issue: '',
+                          assignedDoctor: '',
+                          address: '',
+                          emergencyContact: '',
+                          medicalHistory: '',
+                          allergies: ''
+                        })
+                        fetchPatients()
+                      } catch (err: any) {
+                        toast.error(err?.response?.data?.message || 'Failed to add patient')
+                      }
+                    }}
+                    className="btn btn-primary btn-md flex-1"
+                  >
+                    Add Patient
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   )
