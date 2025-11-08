@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/lib/utils'
 import Sidebar from './Sidebar'
 import Header from './Header'
 
