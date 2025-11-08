@@ -25,7 +25,7 @@ interface DashboardStats {
   cancelledAppointments: number
 }
 
-interface RecentAppointment {
+interface AppointmentItem {
   _id: string
   patient?: {
     name: string
@@ -38,12 +38,13 @@ interface RecentAppointment {
   time: string
   status: string
   type: string
+  caseId?: string
 }
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [recentAppointments, setRecentAppointments] = useState<RecentAppointment[]>([])
+  const [appointments, setAppointments] = useState<AppointmentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [finance, setFinance] = useState<{ incomeToday?: number; incomeMonthly?: number; lowStockCount?: number; expensesMonthly?: number }>({})
   const router = useRouter()
@@ -64,9 +65,9 @@ export default function DashboardPage() {
       const patientStatsResponse = await api.get('/patients/stats')
       const patientStats = patientStatsResponse.data
 
-      // Fetch recent appointments
-      const appointmentsResponse = await api.get('/appointments?limit=5&sortBy=date&sortOrder=desc')
-      const appointments = appointmentsResponse.data.appointments
+      // Fetch all appointments for dashboard table
+      const appointmentsResponse = await api.get('/appointments?limit=50&sortBy=date&sortOrder=desc')
+      const appointmentsData = appointmentsResponse.data.appointments || appointmentsResponse.data
 
       setStats({
         totalPatients: patientStats.totalPatients,
@@ -77,7 +78,7 @@ export default function DashboardPage() {
         cancelledAppointments: appointmentStats.cancelledAppointments
       })
 
-      setRecentAppointments(appointments)
+      setAppointments(appointmentsData)
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
     } finally {
@@ -202,51 +203,71 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent Appointments and Quick Actions */}
+        {/* Appointments and Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Appointments */}
+          {/* Appointments Section */}
           <div className="bg-white rounded-lg border border-secondary-200 shadow-sm h-full">
             <div className="p-4 border-b border-secondary-200">
-              <h3 className="text-lg font-semibold text-secondary-900">Recent Appointments</h3>
+              <h3 className="text-lg font-semibold text-secondary-900">Appointments</h3>
               <p className="text-sm text-secondary-500 mt-1">
-                Latest appointments in the system
+                All appointments with quick status updates
               </p>
             </div>
             <div className="p-4">
-              <div className="space-y-3">
-                {recentAppointments.length > 0 ? (
-                  recentAppointments.map((appointment) => (
-                    <div
-                      key={appointment._id}
-                      className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-primary-100 rounded-full">
-                          <UserCheck className="h-4 w-4 text-primary-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-secondary-900">
-                            {appointment.patient?.name || 'Unknown Patient'}
-                          </p>
-                          <p className="text-xs text-secondary-500">
-                            Dr. {appointment.doctor?.name || 'Unknown Doctor'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-secondary-900">
-                          {formatDate(appointment.date)}
-                        </p>
-                        <p className="text-xs text-secondary-500">
-                          {appointment.time}
-                        </p>
-                      </div>
-                    </div>
-                  ))
+              <div className="overflow-x-auto">
+                {appointments.length > 0 ? (
+                  <table className="min-w-full divide-y divide-secondary-200">
+                    <thead className="bg-secondary-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-secondary-600 uppercase tracking-wider">Case ID</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-secondary-600 uppercase tracking-wider">Patient Name</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-secondary-600 uppercase tracking-wider">Date</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-secondary-600 uppercase tracking-wider">Status</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-secondary-600 uppercase tracking-wider">Total (₹)</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-secondary-600 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-secondary-200">
+                      {appointments.map((appointment) => (
+                        <tr key={appointment._id}>
+                          <td className="px-4 py-2 text-sm text-secondary-900">{appointment.caseId || '—'}</td>
+                          <td className="px-4 py-2 text-sm text-secondary-900">{appointment.patient?.name || 'Unknown'}</td>
+                          <td className="px-4 py-2 text-sm text-secondary-900">{formatDate(appointment.date)}</td>
+                          <td className="px-4 py-2 text-sm">
+                            <select
+                              value={appointment.status}
+                              onChange={async (e) => {
+                                try {
+                                  await api.put(`/appointments/${appointment._id}`, { status: e.target.value })
+                                  fetchDashboardData()
+                                } catch (err) {
+                                  console.error(err)
+                                }
+                              }}
+                              className="text-xs border border-secondary-300 rounded px-2 py-1"
+                            >
+                              <option value="confirmed">Confirmed</option>
+                              <option value="completed">Completed</option>
+                              <option value="cancelled">Cancelled</option>
+                              <option value="rescheduled">Rescheduled</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-2 text-sm text-secondary-900">{/* Total will be computed from invoice if available later */}—</td>
+                          <td className="px-4 py-2 text-sm">
+                            <button
+                              onClick={() => router.push(`/appointments/${appointment.caseId}`)}
+                              disabled={!appointment.caseId}
+                              className={`px-3 py-1 rounded ${appointment.caseId ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'}`}
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 ) : (
-                  <p className="text-secondary-500 text-center py-4">
-                    No recent appointments found
-                  </p>
+                  <p className="text-secondary-500 text-center py-4">No appointments found</p>
                 )}
               </div>
             </div>
