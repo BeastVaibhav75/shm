@@ -53,7 +53,7 @@ export default function AppointmentsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [showAddModal, setShowAddModal] = useState(false)
-  const [patients, setPatients] = useState<any[]>([])
+  const [patients, setPatients] = useState<Patient[]>([])
   const [newAppointment, setNewAppointment] = useState({
     patient: '',
     doctor: '',
@@ -63,6 +63,12 @@ export default function AppointmentsPage() {
     duration: 30,
     notes: ''
   })
+
+  useEffect(() => {
+    if (showAddModal) {
+      fetchPatientsList()
+    }
+  }, [showAddModal])
 
   useEffect(() => {
     fetchAppointments()
@@ -407,12 +413,6 @@ export default function AppointmentsPage() {
                 <h3 className="text-lg font-semibold text-secondary-900 mb-4">
                   Book Appointment
                 </h3>
-
-useEffect(() => {
-    if (showAddModal) {
-      fetchPatientsList()
-    }
-  }, [showAddModal])
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
