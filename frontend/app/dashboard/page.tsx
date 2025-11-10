@@ -297,13 +297,36 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-4 py-2 text-sm text-secondary-900">{/* Total will be computed from invoice if available later */}—</td>
                           <td className="px-4 py-2 text-sm">
-                            <button
-                              onClick={() => router.push(`/appointments/${appointment.caseId}`)}
-                              disabled={!appointment.caseId}
-                              className={`px-3 py-1 rounded ${appointment.caseId ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'}`}
-                            >
-                              View Details
-                            </button>
+                            {user?.role === 'receptionist' ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => router.push('/prescriptions')}
+                                  className="px-3 py-1 rounded bg-primary-50 text-primary-700 hover:bg-primary-100"
+                                >
+                                  Prescriptions
+                                </button>
+                                <button
+                                  onClick={() => router.push('/treatment-plans')}
+                                  className="px-3 py-1 rounded bg-warning-50 text-warning-700 hover:bg-warning-100"
+                                >
+                                  Treatment Plans
+                                </button>
+                                <button
+                                  onClick={() => router.push('/invoices')}
+                                  className="px-3 py-1 rounded bg-success-50 text-success-700 hover:bg-success-100"
+                                >
+                                  Bills
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => router.push(`/appointments/${appointment.caseId}`)}
+                                disabled={!appointment.caseId}
+                                className={`px-3 py-1 rounded ${appointment.caseId ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'}`}
+                              >
+                                View Details
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
