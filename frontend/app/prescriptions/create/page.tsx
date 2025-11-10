@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { api } from '@/lib/api'
 import { Plus, Trash2, Send, FileText } from 'lucide-react'
@@ -9,24 +9,43 @@ import toast from 'react-hot-toast'
 
 export default function CreatePrescriptionPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const presetPatientId = searchParams.get('patientId') || ''
+  const presetCaseId = searchParams.get('caseId') || ''
+  const presetAppointmentId = searchParams.get('appointmentId') || ''
   const [patients, setPatients] = useState<any[]>([])
   const [medicines, setMedicines] = useState<any[]>([
     { name: '', dosage: '', frequency: '', duration: '', instructions: '' }
   ])
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    patientId: '',
+    patientId: presetPatientId,
     diagnosis: '',
     instructions: '',
     followUpDate: '',
     sendVia: 'whatsapp'
   })
+  const [lockedPatient, setLockedPatient] = useState(Boolean(presetPatientId))
 
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         const res = await api.get('/patients')
-        setPatients(res.data.patients)
+        let data = Array.isArray(res.data) ? res.data : res.data?.patients || []
+
+        if (presetPatientId && !data.some((patient: any) => patient._id === presetPatientId)) {
+          try {
+            const patientRes = await api.get(`/patients/${presetPatientId}`)
+            const patient = patientRes.data?.patient || patientRes.data
+            if (patient) {
+              data = [...data, patient]
+            }
+          } catch (patientError) {
+            console.warn('Failed to fetch preset patient details:', patientError)
+          }
+        }
+
+        setPatients(data)
       } catch (error) {
         console.error('Error fetching patients:', error)
         toast.error('Failed to load patients')
@@ -34,7 +53,14 @@ export default function CreatePrescriptionPage() {
     }
 
     fetchPatients()
-  }, [])
+  }, [presetPatientId])
+
+  useEffect(() => {
+    if (presetPatientId) {
+      setFormData((prev) => ({ ...prev, patientId: presetPatientId }))
+      setLockedPatient(true)
+    }
+  }, [presetPatientId])
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -66,8 +92,8 @@ export default function CreatePrescriptionPage() {
       return
     }
     
-    if (medicines.some(m => !m.name)) {
-      toast.error('Please fill in all medicine names')
+    if (medicines.some(m => !m.name || !m.dosage || !m.frequency || !m.duration)) {
+      toast.error('Please fill all medicine fields: name, dosage, frequency, duration')
       return
     }
     
@@ -78,9 +104,11 @@ export default function CreatePrescriptionPage() {
         patient: formData.patientId,
         diagnosis: formData.diagnosis,
         medicines: medicines,
-        instructions: formData.instructions,
+        generalInstructions: formData.instructions,
         followUpDate: formData.followUpDate || undefined,
-        sendVia: formData.sendVia
+        sendVia: formData.sendVia,
+        caseId: presetCaseId || undefined,
+        appointment: presetAppointmentId || undefined
       }
       
       const res = await api.post('/prescriptions', prescriptionData)
@@ -90,7 +118,7 @@ export default function CreatePrescriptionPage() {
       await api.get(`/prescriptions/${res.data._id}/generate-pdf`)
       
       // Send via selected method if needed
-      if (formData.sendVia) {
+      if (formData.sendVia && formData.sendVia !== 'none') {
         await api.post(`/prescriptions/${res.data._id}/send`, {
           method: formData.sendVia
         })
@@ -120,6 +148,7 @@ export default function CreatePrescriptionPage() {
                 value={formData.patientId}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2"
+                disabled={lockedPatient}
                 required
               >
                 <option value="">Select Patient</option>
@@ -129,6 +158,11 @@ export default function CreatePrescriptionPage() {
                   </option>
                 )) : null}
               </select>
+              {lockedPatient && (
+                <p className="text-xs text-secondary-500 mt-1">
+                  Patient pre-selected from appointment. Go back if you need to choose a different patient.
+                </p>
+              )}
             </div>
             
             <div>
@@ -180,6 +214,7 @@ export default function CreatePrescriptionPage() {
                       className="w-full border rounded px-3 py-2"
                       placeholder="Medicine name"
                       required
+                    required
                     />
                   </div>
                   
@@ -191,6 +226,7 @@ export default function CreatePrescriptionPage() {
                       onChange={(e) => handleMedicineChange(index, 'dosage', e.target.value)}
                       className="w-full border rounded px-3 py-2"
                       placeholder="e.g., 500mg"
+                    required
                     />
                   </div>
                 </div>
@@ -204,6 +240,7 @@ export default function CreatePrescriptionPage() {
                       onChange={(e) => handleMedicineChange(index, 'frequency', e.target.value)}
                       className="w-full border rounded px-3 py-2"
                       placeholder="e.g., Twice daily"
+                    required
                     />
                   </div>
                   
