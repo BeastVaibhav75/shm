@@ -16,7 +16,8 @@ export default function PrescriptionsPage() {
       try {
         setLoading(true)
         const res = await api.get('/prescriptions')
-        setPrescriptions(res.data)
+        const data = Array.isArray(res.data) ? res.data : res.data?.prescriptions || []
+        setPrescriptions(data)
         setLoading(false)
       } catch (error) {
         console.error('Error fetching prescriptions:', error)
