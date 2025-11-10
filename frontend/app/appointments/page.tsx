@@ -14,10 +14,12 @@ import {
   Stethoscope,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  MoreVertical
 } from 'lucide-react'
 import { formatDate, formatTime, getStatusColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Appointment {
   _id: string
@@ -73,6 +75,8 @@ export default function AppointmentsPage() {
     notes: ''
   })
   const [sortOrder, setSortOrder] = useState('desc')
+  const [openManageId, setOpenManageId] = useState<string | null>(null)
+  const { user } = useAuth()
 
   useEffect(() => {
     if (showAddModal) {
@@ -367,7 +371,40 @@ export default function AppointmentsPage() {
                           </div>
                         </td>
                         <td className="table-cell">
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 relative">
+                            {user?.role === 'receptionist' && (
+                              <div className="relative">
+                                <button
+                                  onClick={() => setOpenManageId(openManageId === appointment._id ? null : appointment._id)}
+                                  className="p-1 hover:bg-secondary-100 rounded"
+                                  aria-label="Manage"
+                                >
+                                  <MoreVertical className="h-4 w-4 text-secondary-600" />
+                                </button>
+                                {openManageId === appointment._id && (
+                                  <div className="absolute z-10 mt-2 w-40 right-0 bg-white border border-secondary-200 rounded shadow-md">
+                                    <button
+                                      onClick={() => { window.location.href = '/prescriptions'; }}
+                                      className="block w-full text-left px-3 py-2 text-sm hover:bg-secondary-50"
+                                    >
+                                      Prescriptions
+                                    </button>
+                                    <button
+                                      onClick={() => { window.location.href = '/treatment-plans'; }}
+                                      className="block w-full text-left px-3 py-2 text-sm hover:bg-secondary-50"
+                                    >
+                                      Treatment Plans
+                                    </button>
+                                    <button
+                                      onClick={() => { window.location.href = '/invoices'; }}
+                                      className="block w-full text-left px-3 py-2 text-sm hover:bg-secondary-50"
+                                    >
+                                      Bills
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                             <select
                               value={appointment.status}
                               onChange={(e) => handleStatusChange(appointment._id, e.target.value)}
