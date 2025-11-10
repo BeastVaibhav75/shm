@@ -26,7 +26,7 @@ export default function CreatePrescriptionPage() {
     const fetchPatients = async () => {
       try {
         const res = await api.get('/patients')
-        setPatients(res.data)
+        setPatients(res.data.patients)
       } catch (error) {
         console.error('Error fetching patients:', error)
         toast.error('Failed to load patients')
