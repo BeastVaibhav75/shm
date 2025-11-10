@@ -26,7 +26,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   }
 
   return (
-    <div className="h-full px-4 md:px-6 w-full flex items-center justify-between">
+    <header className="flex h-20 w-full items-center justify-between border-b border-secondary-200 bg-white px-4 md:px-6">
       {/* Left side */}
       <div className="flex items-center space-x-4">
         <button
@@ -113,6 +113,6 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           )}
         </div>
       </div>
-    </div>
+    </header>
   )
 }
