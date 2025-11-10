@@ -298,26 +298,24 @@ export default function DashboardPage() {
                           <td className="px-4 py-2 text-sm text-secondary-900">{/* Total will be computed from invoice if available later */}—</td>
                           <td className="px-4 py-2 text-sm">
                             {user?.role === 'receptionist' ? (
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => router.push('/prescriptions')}
-                                  className="px-3 py-1 rounded bg-primary-50 text-primary-700 hover:bg-primary-100"
-                                >
-                                  Prescriptions
-                                </button>
-                                <button
-                                  onClick={() => router.push('/treatment-plans')}
-                                  className="px-3 py-1 rounded bg-warning-50 text-warning-700 hover:bg-warning-100"
-                                >
-                                  Treatment Plans
-                                </button>
-                                <button
-                                  onClick={() => router.push('/invoices')}
-                                  className="px-3 py-1 rounded bg-success-50 text-success-700 hover:bg-success-100"
-                                >
-                                  Bills
-                                </button>
-                              </div>
+                              <select
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                  if (!value) return
+                                  router.push(value)
+                                  // reset to placeholder after navigation for better UX
+                                  e.currentTarget.selectedIndex = 0
+                                }}
+                                className="text-xs border border-secondary-300 rounded px-2 py-1 bg-white"
+                                defaultValue=""
+                              >
+                                <option value="" disabled>
+                                  Manage...
+                                </option>
+                                <option value="/prescriptions">Prescriptions</option>
+                                <option value="/treatment-plans">Treatment Plans</option>
+                                <option value="/invoices">Bills</option>
+                              </select>
                             ) : (
                               <button
                                 onClick={() => router.push(`/appointments/${appointment.caseId}`)}
