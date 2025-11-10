@@ -28,11 +28,11 @@ interface Appointment {
     age: number
     gender: string
   }
-  doctor: {
+  doctor?: {
     _id: string
     name: string
     specialization: string
-  }
+  } | null
   date: string
   time: string
   notes: string
@@ -331,11 +331,13 @@ export default function AppointmentsPage() {
                         <td className="table-cell">
                           <div>
                             <p className="text-sm font-medium text-secondary-900">
-                              Dr. {appointment.doctor.name}
+                              {appointment.doctor ? `Dr. ${appointment.doctor.name}` : 'Unassigned'}
                             </p>
-                            <p className="text-xs text-secondary-500">
-                              {appointment.doctor.specialization}
-                            </p>
+                            {appointment.doctor?.specialization && (
+                              <p className="text-xs text-secondary-500">
+                                {appointment.doctor.specialization}
+                              </p>
+                            )}
                           </div>
                         </td>
                         <td className="table-cell">
