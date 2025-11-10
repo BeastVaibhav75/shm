@@ -21,6 +21,7 @@ interface AuthContextType {
   logout: () => void
   loading: boolean
   isAuthenticated: boolean
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -116,7 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     loading,
-    isAuthenticated
+    isAuthenticated,
+    refreshProfile: fetchProfile
   }
 
   return (

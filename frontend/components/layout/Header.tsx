@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Bell, Search, Menu, User, Settings, LogOut } from 'lucide-react'
 
@@ -11,6 +12,13 @@ interface HeaderProps {
 export default function Header({ onMenuToggle }: HeaderProps) {
   const { user } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const router = useRouter()
+
+  const formatDisplayName = (name?: string, role?: string) => {
+    if (!name) return 'User'
+    if (role === 'doctor' && !/^Dr\.\s/i.test(name)) return `Dr. ${name}`
+    return name
+  }
 
   const handleLogout = () => {
     // This will be handled by the AuthContext
@@ -72,7 +80,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             </div>
             <div className="hidden md:block text-left">
               <p className="text-sm font-medium text-secondary-900">
-                {user?.name || 'User'}
+                {formatDisplayName(user?.name, user?.role)}
               </p>
               <p className="text-xs text-secondary-500">
                 {user?.role || 'Role'}
@@ -83,7 +91,13 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           {showUserMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-secondary-200 z-50">
               <div className="py-1">
-                <button className="w-full text-left px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 flex items-center">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false)
+                    router.push('/settings')
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100 flex items-center"
+                >
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </button>

@@ -157,7 +157,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-secondary-900 truncate">
-                  {user?.name}
+                  {formatDisplayName(user?.name, user?.role)}
                 </p>
                 <p className="text-xs text-secondary-500 capitalize">
                   {user?.role}
@@ -211,3 +211,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     </>
   )
 }
+  const formatDisplayName = (name?: string, role?: string) => {
+    if (!name) return 'User'
+    if (role === 'doctor' && !/^Dr\.\s/i.test(name)) return `Dr. ${name}`
+    return name
+  }

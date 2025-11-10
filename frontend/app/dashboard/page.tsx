@@ -45,6 +45,7 @@ export default function DashboardPage() {
   const { user } = useAuth()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [appointments, setAppointments] = useState<AppointmentItem[]>([])
+  const [appointmentsFilter, setAppointmentsFilter] = useState<'yesterday'|'today'|'tomorrow'|'all'>('today')
   const [loading, setLoading] = useState(true)
   const [finance, setFinance] = useState<{ incomeToday?: number; incomeMonthly?: number; lowStockCount?: number; expensesMonthly?: number }>({})
   const router = useRouter()
@@ -106,6 +107,25 @@ export default function DashboardPage() {
     }
   }
 
+  const formatDisplayName = (name?: string, role?: string) => {
+    if (!name) return 'User'
+    if (role === 'doctor' && !/^Dr\.\s/i.test(name)) return `Dr. ${name}`
+    return name
+  }
+
+  const filteredAppointments = (() => {
+    if (appointmentsFilter === 'all') return appointments
+    const base = new Date()
+    let target = new Date(base)
+    if (appointmentsFilter === 'yesterday') target.setDate(base.getDate() - 1)
+    if (appointmentsFilter === 'tomorrow') target.setDate(base.getDate() + 1)
+    const targetStr = target.toDateString()
+    return appointments.filter(a => {
+      const d = new Date(a.date)
+      return d.toDateString() === targetStr
+    })
+  })()
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -122,7 +142,7 @@ export default function DashboardPage() {
         {/* Main Dashboard Header */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900">
-            {getGreeting()}, {user?.name || 'User'}!
+            {getGreeting()}, {formatDisplayName(user?.name, user?.role)}!
           </h1>
           <p className="text-base sm:text-lg text-secondary-600 mt-2">
             {getRoleBasedDescription()}
@@ -212,10 +232,27 @@ export default function DashboardPage() {
               <p className="text-sm text-secondary-500 mt-1">
                 All appointments with quick status updates
               </p>
+              {/* Day Filters */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {[
+                  { key: 'yesterday', label: 'Yesterday' },
+                  { key: 'today', label: 'Today' },
+                  { key: 'tomorrow', label: 'Tomorrow' },
+                  { key: 'all', label: 'View All' }
+                ].map(btn => (
+                  <button
+                    key={btn.key}
+                    onClick={() => setAppointmentsFilter(btn.key as any)}
+                    className={`px-3 py-1 rounded text-sm border ${appointmentsFilter === btn.key ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-secondary-700 border-secondary-300 hover:bg-secondary-100'}`}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="p-4">
               <div className="overflow-x-auto">
-                {appointments.length > 0 ? (
+                {filteredAppointments.length > 0 ? (
                   <table className="min-w-full divide-y divide-secondary-200">
                     <thead className="bg-secondary-50">
                       <tr>
@@ -228,7 +265,7 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-secondary-200">
-                      {appointments.map((appointment) => (
+                      {filteredAppointments.map((appointment) => (
                         <tr key={appointment._id}>
                           <td className="px-4 py-2 text-sm text-secondary-900">{appointment.caseId || '—'}</td>
                           <td className="px-4 py-2 text-sm text-secondary-900">{appointment.patient?.name || 'Unknown'}</td>
