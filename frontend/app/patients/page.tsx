@@ -27,11 +27,11 @@ interface Patient {
   age: number
   gender: string
   issue: string
-  assignedDoctor: {
+  assignedDoctor?: {
     _id: string
     name: string
     specialization: string
-  }
+  } | null
   address: string
   emergencyContact: string
   medicalHistory: string
@@ -246,11 +246,13 @@ export default function PatientsPage() {
                         <td className="table-cell">
                           <div>
                             <p className="text-sm font-medium text-secondary-900">
-                              Dr. {patient.assignedDoctor.name}
+                              {patient.assignedDoctor ? `Dr. ${patient.assignedDoctor.name}` : 'Unassigned'}
                             </p>
-                            <p className="text-xs text-secondary-500">
-                              {patient.assignedDoctor.specialization}
-                            </p>
+                            {patient.assignedDoctor?.specialization && (
+                              <p className="text-xs text-secondary-500">
+                                {patient.assignedDoctor.specialization}
+                              </p>
+                            )}
                           </div>
                         </td>
                         <td className="table-cell">
