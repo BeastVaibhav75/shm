@@ -113,18 +113,24 @@ export default function DashboardPage() {
     return name
   }
 
-  const filteredAppointments = (() => {
-    if (appointmentsFilter === 'all') return appointments
-    const base = new Date()
-    let target = new Date(base)
-    if (appointmentsFilter === 'yesterday') target.setDate(base.getDate() - 1)
-    if (appointmentsFilter === 'tomorrow') target.setDate(base.getDate() + 1)
-    const targetStr = target.toDateString()
-    return appointments.filter(a => {
-      const d = new Date(a.date)
-      return d.toDateString() === targetStr
-    })
-  })()
+  const filteredAppointments =
+    appointmentsFilter === 'all'
+      ? appointments
+      : appointments.filter((appointment) => {
+          const base = new Date()
+          const target = new Date(base)
+
+          if (appointmentsFilter === 'yesterday') {
+            target.setDate(base.getDate() - 1)
+          } else if (appointmentsFilter === 'tomorrow') {
+            target.setDate(base.getDate() + 1)
+          }
+
+          const targetStr = target.toDateString()
+          const appointmentDate = new Date(appointment.date).toDateString()
+
+          return appointmentDate === targetStr
+        })
 
   if (loading) {
     return (

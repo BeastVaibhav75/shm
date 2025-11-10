@@ -72,6 +72,7 @@ export default function AppointmentsPage() {
     duration: 30,
     notes: ''
   })
+  const [sortOrder, setSortOrder] = useState('desc')
 
   useEffect(() => {
     if (showAddModal) {
@@ -82,14 +83,16 @@ export default function AppointmentsPage() {
   useEffect(() => {
     fetchAppointments()
     fetchDoctors()
-  }, [currentPage, searchTerm, selectedDoctor, selectedStatus, selectedDate])
+  }, [currentPage, searchTerm, selectedDoctor, selectedStatus, selectedDate, sortOrder])
 
   const fetchAppointments = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: '10'
+        limit: '10',
+        sortBy: 'date',
+        sortOrder: sortOrder
       })
       
       if (searchTerm) params.append('search', searchTerm)
@@ -198,13 +201,21 @@ export default function AppointmentsPage() {
               Manage patient appointments and schedules
             </p>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="btn btn-primary btn-md mt-4 sm:mt-0"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Book Appointment
-          </button>
+          <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+            <button 
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="btn btn-outline btn-sm"
+            >
+              Sort by Date {sortOrder === 'asc' ? '↑' : '↓'}
+            </button>
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="btn btn-primary btn-sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Book Appointment
+            </button>
+          </div>
         </motion.div>
 
         {/* Filters */}
@@ -214,8 +225,8 @@ export default function AppointmentsPage() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="card"
         >
-          <div className="card-content">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="card-content pt-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <div className="lg:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
@@ -231,7 +242,7 @@ export default function AppointmentsPage() {
                   />
                 </div>
               </div>
-              <div>
+              <div className="sm:col-span-1">
                 <select
                   value={selectedDoctor}
                   onChange={(e) => {
@@ -248,7 +259,7 @@ export default function AppointmentsPage() {
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="sm:col-span-1">
                 <select
                   value={selectedStatus}
                   onChange={(e) => {
@@ -264,7 +275,7 @@ export default function AppointmentsPage() {
                   <option value="rescheduled">Rescheduled</option>
                 </select>
               </div>
-              <div>
+              <div className="sm:col-span-1">
                 <input
                   type="date"
                   value={selectedDate}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { api } from '@/lib/api'
 import { Plus, Trash2, Calendar } from 'lucide-react'
@@ -9,6 +9,10 @@ import toast from 'react-hot-toast'
 
 export default function CreateTreatmentPlanPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const presetPatientId = searchParams.get('patientId') || ''
+  const presetDoctorId = searchParams.get('doctorId') || ''
+  const presetCaseId = searchParams.get('caseId') || ''
   const [patients, setPatients] = useState<any[]>([])
   const [doctors, setDoctors] = useState<any[]>([])
   const [steps, setSteps] = useState<any[]>([
@@ -16,13 +20,15 @@ export default function CreateTreatmentPlanPage() {
   ])
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    patientId: '',
-    doctorId: '',
+    patientId: presetPatientId,
+    doctorId: presetDoctorId,
     title: '',
     description: '',
     startDate: '',
     estimatedDuration: ''
   })
+  const [lockedPatient, setLockedPatient] = useState(Boolean(presetPatientId))
+  const [lockedDoctor, setLockedDoctor] = useState(Boolean(presetDoctorId))
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,8 +37,35 @@ export default function CreateTreatmentPlanPage() {
           api.get('/patients'),
           api.get('/users?role=doctor')
         ])
-        setPatients(patientsRes.data)
-        setDoctors(doctorsRes.data)
+
+        let patientsData = Array.isArray(patientsRes.data) ? patientsRes.data : patientsRes.data?.patients || []
+        if (presetPatientId && !patientsData.some((patient: any) => patient._id === presetPatientId)) {
+          try {
+            const patientRes = await api.get(`/patients/${presetPatientId}`)
+            const patient = patientRes.data?.patient || patientRes.data
+            if (patient) {
+              patientsData = [...patientsData, patient]
+            }
+          } catch (patientErr) {
+            console.warn('Failed to fetch preset patient for treatment plan:', patientErr)
+          }
+        }
+
+        let doctorsData = Array.isArray(doctorsRes.data) ? doctorsRes.data : doctorsRes.data?.doctors || doctorsRes.data?.users || []
+        if (presetDoctorId && !doctorsData.some((doctor: any) => doctor._id === presetDoctorId)) {
+          try {
+            const doctorRes = await api.get(`/users/${presetDoctorId}`)
+            const doctor = doctorRes.data?.user || doctorRes.data
+            if (doctor) {
+              doctorsData = [...doctorsData, doctor]
+            }
+          } catch (doctorErr) {
+            console.warn('Failed to fetch preset doctor for treatment plan:', doctorErr)
+          }
+        }
+
+        setPatients(patientsData)
+        setDoctors(doctorsData)
       } catch (error) {
         console.error('Error fetching data:', error)
         toast.error('Failed to load data')
@@ -40,7 +73,21 @@ export default function CreateTreatmentPlanPage() {
     }
 
     fetchData()
-  }, [])
+  }, [presetPatientId, presetDoctorId])
+
+  useEffect(() => {
+    if (presetPatientId) {
+      setFormData((prev) => ({ ...prev, patientId: presetPatientId }))
+      setLockedPatient(true)
+    }
+  }, [presetPatientId])
+
+  useEffect(() => {
+    if (presetDoctorId) {
+      setFormData((prev) => ({ ...prev, doctorId: presetDoctorId }))
+      setLockedDoctor(true)
+    }
+  }, [presetDoctorId])
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -101,7 +148,8 @@ export default function CreateTreatmentPlanPage() {
         })),
         startDate: formData.startDate || undefined,
         estimatedDuration: formData.estimatedDuration || undefined,
-        totalCost: calculateTotalCost()
+        totalCost: calculateTotalCost(),
+        caseId: presetCaseId || undefined
       }
       
       await api.post('/treatment-plans', treatmentPlanData)
@@ -129,6 +177,7 @@ export default function CreateTreatmentPlanPage() {
                 value={formData.patientId}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2"
+                disabled={lockedPatient}
                 required
               >
                 <option value="">Select Patient</option>
@@ -138,6 +187,11 @@ export default function CreateTreatmentPlanPage() {
                   </option>
                 ))}
               </select>
+              {lockedPatient && (
+                <p className="text-xs text-secondary-500 mt-1">
+                  Patient pre-selected from appointment case.
+                </p>
+              )}
             </div>
             
             <div>
@@ -147,6 +201,7 @@ export default function CreateTreatmentPlanPage() {
                 value={formData.doctorId}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2"
+                disabled={lockedDoctor}
               >
                 <option value="">Select Doctor</option>
                 {doctors.map((doctor) => (
@@ -155,6 +210,11 @@ export default function CreateTreatmentPlanPage() {
                   </option>
                 ))}
               </select>
+              {lockedDoctor && (
+                <p className="text-xs text-secondary-500 mt-1">
+                  Doctor pre-selected from appointment case.
+                </p>
+              )}
             </div>
           </div>
           

@@ -214,7 +214,6 @@ export default function CreatePrescriptionPage() {
                       className="w-full border rounded px-3 py-2"
                       placeholder="Medicine name"
                       required
-                    required
                     />
                   </div>
                   
@@ -252,6 +251,7 @@ export default function CreatePrescriptionPage() {
                       onChange={(e) => handleMedicineChange(index, 'duration', e.target.value)}
                       className="w-full border rounded px-3 py-2"
                       placeholder="e.g., 7 days"
+                    required
                     />
                   </div>
                   

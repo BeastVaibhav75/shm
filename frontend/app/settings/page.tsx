@@ -68,7 +68,10 @@ export default function SettingsPage() {
       toast.success('Password changed successfully')
       setPasswordForm({ currentPassword: '', newPassword: '', confirmNewPassword: '' })
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Failed to change password')
+      const apiMessage =
+        e?.response?.data?.errors?.[0]?.msg ||
+        e?.response?.data?.message
+      toast.error(apiMessage || 'Failed to change password')
     } finally {
       setChangingPassword(false)
     }

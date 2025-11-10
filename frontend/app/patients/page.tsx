@@ -148,9 +148,9 @@ export default function PatientsPage() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="card"
         >
-          <div className="card-content">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+          <div className="card-content pt-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr),16rem]">
+              <div>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
                   <input
@@ -162,7 +162,7 @@ export default function PatientsPage() {
                   />
                 </div>
               </div>
-              <div className="sm:w-64">
+              <div>
                 <select
                   value={selectedDoctor}
                   onChange={(e) => {

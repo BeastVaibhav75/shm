@@ -58,7 +58,7 @@ exports.getPrescriptionById = async (req, res) => {
 // Create new prescription
 exports.createPrescription = async (req, res) => {
   try {
-    const { patient, medicines, generalInstructions, diagnosis, followUpDate, appointment } = req.body;
+    const { patient, medicines, generalInstructions, diagnosis, followUpDate, appointment, caseId } = req.body;
     
     // Check if patient exists
     const patientExists = await Patient.findById(patient);
@@ -74,6 +74,7 @@ exports.createPrescription = async (req, res) => {
       diagnosis,
       followUpDate,
       appointment,
+      caseId: caseId || undefined,
       digitalSignature: req.user.name
     });
     

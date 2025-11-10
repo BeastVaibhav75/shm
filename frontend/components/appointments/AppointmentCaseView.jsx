@@ -14,15 +14,45 @@ export default function AppointmentCaseView({ params }) {
   const [loading, setLoading] = useState(true)
   const [caseData, setCaseData] = useState(null)
   const [activeTab, setActiveTab] = useState("chart")
-  const [billItems, setBillItems] = useState([])
-  const [notes, setNotes] = useState("")
+  const createEmptyBillItem = () => ({
+    description: "",
+    quantity: 1,
+    unitPrice: 0
+  })
+  const [billItems, setBillItems] = useState([createEmptyBillItem()])
+  const [gstPercent, setGstPercent] = useState(0)
+  const [discountPercent, setDiscountPercent] = useState(0)
+  const [billNotes, setBillNotes] = useState("")
+  const [caseNotes, setCaseNotes] = useState("")
 
   useEffect(() => {
     const fetchCase = async () => {
       try {
         setLoading(true)
         const res = await api.get(`/appointments/case/${case_id}`)
-        setCaseData(res.data)
+        const payload = res.data
+        setCaseData(payload)
+
+        const invoices = payload?.invoices || []
+        const latestInvoice = invoices.length ? invoices[invoices.length - 1] : null
+
+        if (latestInvoice?.items?.length) {
+          setBillItems(
+            latestInvoice.items.map((item) => ({
+              description: item.description || "",
+              quantity: item.quantity ?? 1,
+              unitPrice: item.unitPrice ?? 0
+            }))
+          )
+          setGstPercent(latestInvoice.gstPercent || 0)
+          setDiscountPercent(latestInvoice.discountPercent || 0)
+          setBillNotes(latestInvoice.notes || "")
+        } else {
+          setBillItems([createEmptyBillItem()])
+          setGstPercent(0)
+          setDiscountPercent(0)
+          setBillNotes("")
+        }
         setLoading(false)
       } catch (err) {
         console.error("Failed to load case:", err)
@@ -33,17 +63,29 @@ export default function AppointmentCaseView({ params }) {
     if (case_id) fetchCase()
   }, [case_id])
 
-  const subtotal = billItems.reduce((sum, item) => sum + Number(item.amount || 0), 0)
-  const tax = 0
-  const total = subtotal + tax
+  const subtotal = billItems.reduce((sum, item) => {
+    const qty = Number(item.quantity) || 0
+    const price = Number(item.unitPrice) || 0
+    return sum + qty * price
+  }, 0)
+  const gstAmount = subtotal * ((Number(gstPercent) || 0) / 100)
+  const discountAmount = subtotal * ((Number(discountPercent) || 0) / 100)
+  const total = Math.max(0, subtotal + gstAmount - discountAmount)
 
-  const addBillItem = () => setBillItems([...billItems, { description: "", amount: 0 }])
+  const addBillItem = () => setBillItems([...billItems, createEmptyBillItem()])
   const updateBillItem = (idx, field, value) => {
     const copy = [...billItems]
-    copy[idx][field] = field === "amount" ? Number(value) : value
+    if (field === "quantity" || field === "unitPrice") {
+      copy[idx][field] = Number(value)
+    } else {
+      copy[idx][field] = value
+    }
     setBillItems(copy)
   }
-  const removeBillItem = (idx) => setBillItems(billItems.filter((_, i) => i !== idx))
+  const removeBillItem = (idx) => {
+    const remaining = billItems.filter((_, i) => i !== idx)
+    setBillItems(remaining.length ? remaining : [createEmptyBillItem()])
+  }
 
   const markCompleted = async () => {
     try {
@@ -60,20 +102,78 @@ export default function AppointmentCaseView({ params }) {
 
   const saveBill = async () => {
     try {
+      const preparedItems = billItems
+        .filter((item) => item.description && Number(item.quantity) > 0)
+        .map((item) => ({
+          description: item.description,
+          quantity: Number(item.quantity) || 0,
+          unitPrice: Number(item.unitPrice) || 0
+        }))
+
+      if (!preparedItems.length) {
+        toast.error("Add at least one billed item before saving")
+        return
+      }
+
       const payload = {
-        items: billItems.map((i) => ({ description: i.description, amount: Number(i.amount) })),
-        subtotal,
-        total,
+        items: preparedItems,
+        gstPercent: Number(gstPercent) || 0,
+        discountPercent: Number(discountPercent) || 0,
+        notes: billNotes
       }
       const res = await api.post(`/appointments/${case_id}/bill`, payload)
+      const invoice = res.data?.invoice
       toast.success("Bill saved")
-      // attach invoice to local state
-      setCaseData((prev) => ({ ...prev, invoices: [...(prev?.invoices || []), res.data] }))
+      if (invoice) {
+        setCaseData((prev) => {
+          if (!prev) return prev
+          const existing = prev.invoices || []
+          const filtered = existing.filter((inv) => inv._id !== invoice._id)
+          return {
+            ...prev,
+            invoices: [...filtered, invoice]
+          }
+        })
+        setBillItems(
+          (invoice.items || []).map((item) => ({
+            description: item.description || "",
+            quantity: item.quantity ?? 1,
+            unitPrice: item.unitPrice ?? 0
+          }))
+        )
+        setGstPercent(invoice.gstPercent || 0)
+        setDiscountPercent(invoice.discountPercent || 0)
+        setBillNotes(invoice.notes || "")
+      }
     } catch (err) {
       console.error(err)
-      toast.error("Failed to save bill")
+      toast.error(err?.response?.data?.message || "Failed to save bill")
     }
   }
+  const handleCreatePrescription = () => {
+    const patientId = caseData?.appointment?.patient?._id
+    if (!patientId) {
+      toast.error("Patient not available for this case")
+      return
+    }
+    const params = new URLSearchParams({ patientId })
+    if (caseData?.appointment?.caseId) params.set("caseId", caseData.appointment.caseId)
+    if (caseData?.appointment?._id) params.set("appointmentId", caseData.appointment._id)
+    router.push(`/prescriptions/create?${params.toString()}`)
+  }
+
+  const handleCreateTreatmentPlan = () => {
+    const patientId = caseData?.appointment?.patient?._id
+    if (!patientId) {
+      toast.error("Patient not available for this case")
+      return
+    }
+    const params = new URLSearchParams({ patientId })
+    if (caseData?.appointment?.doctor?._id) params.set("doctorId", caseData.appointment.doctor._id)
+    if (caseData?.appointment?.caseId) params.set("caseId", caseData.appointment.caseId)
+    router.push(`/treatment-plans/create?${params.toString()}`)
+  }
+
 
   if (loading) {
     return (
@@ -159,9 +259,22 @@ export default function AppointmentCaseView({ params }) {
 
             {activeTab === "prescription" && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h4 className="font-semibold">Prescriptions</h4>
-                  <Link href="/prescriptions/create" className="px-3 py-2 rounded bg-primary-600 text-white hover:bg-primary-700">New Prescription</Link>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={handleCreatePrescription}
+                      className="px-3 py-2 rounded bg-primary-600 text-white hover:bg-primary-700"
+                    >
+                      Create Prescription
+                    </button>
+                    <Link
+                      href={`/prescriptions?patient=${caseData?.appointment?.patient?._id ?? ""}`}
+                      className="px-3 py-2 rounded bg-secondary-100 text-secondary-900 hover:bg-secondary-200"
+                    >
+                      View Prescriptions
+                    </Link>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {(caseData.prescriptions || []).map((p) => (
@@ -182,9 +295,22 @@ export default function AppointmentCaseView({ params }) {
 
             {activeTab === "treatments" && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h4 className="font-semibold">Treatment Plans</h4>
-                  <Link href="/treatments" className="px-3 py-2 rounded bg-primary-600 text-white hover:bg-primary-700">Manage Treatments</Link>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={handleCreateTreatmentPlan}
+                      className="px-3 py-2 rounded bg-primary-600 text-white hover:bg-primary-700"
+                    >
+                      Create Treatment Plan
+                    </button>
+                    <Link
+                      href={`/treatment-plans?patient=${caseData?.appointment?.patient?._id ?? ""}`}
+                      className="px-3 py-2 rounded bg-secondary-100 text-secondary-900 hover:bg-secondary-200"
+                    >
+                      View Treatment Plans
+                    </Link>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {(caseData.treatmentPlans || []).map((t) => (
@@ -204,7 +330,9 @@ export default function AppointmentCaseView({ params }) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold">Generate Bill</h4>
-                  <button onClick={addBillItem} className="px-3 py-2 rounded bg-secondary-100 text-secondary-900">Add Charge</button>
+                  <button onClick={addBillItem} className="px-3 py-2 rounded bg-secondary-100 text-secondary-900">
+                    Add Charge
+                  </button>
                 </div>
                 <div className="space-y-3">
                   {billItems.map((item, idx) => (
@@ -218,23 +346,67 @@ export default function AppointmentCaseView({ params }) {
                       />
                       <input
                         type="number"
-                        value={item.amount}
-                        onChange={(e) => updateBillItem(idx, "amount", e.target.value)}
-                        className="col-span-3 input"
-                        placeholder="Amount"
+                        value={item.quantity}
+                        onChange={(e) => updateBillItem(idx, "quantity", e.target.value)}
+                        className="col-span-2 input"
+                        placeholder="Qty"
+                        min={1}
+                      />
+                      <input
+                        type="number"
+                        value={item.unitPrice}
+                        onChange={(e) => updateBillItem(idx, "unitPrice", e.target.value)}
+                        className="col-span-2 input"
+                        placeholder="Unit Price"
                         min={0}
                       />
-                      <button onClick={() => removeBillItem(idx)} className="col-span-1 px-3 py-2 rounded bg-error-100 text-error-800">X</button>
+                      <button onClick={() => removeBillItem(idx)} className="col-span-1 px-3 py-2 rounded bg-error-100 text-error-800">
+                        X
+                      </button>
                     </div>
                   ))}
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-secondary-600 block mb-1">GST (%)</label>
+                    <input
+                      type="number"
+                      value={gstPercent}
+                      min={0}
+                      onChange={(e) => setGstPercent(Number(e.target.value))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-secondary-600 block mb-1">Discount (%)</label>
+                    <input
+                      type="number"
+                      value={discountPercent}
+                      min={0}
+                      onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                      className="input"
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="text-xs font-medium text-secondary-600 block mb-1">Billing Notes</label>
+                    <textarea
+                      value={billNotes}
+                      onChange={(e) => setBillNotes(e.target.value)}
+                      className="input min-h-[80px]"
+                      placeholder="Add billing notes (optional)"
+                    />
+                  </div>
+                </div>
                 <div className="border-t pt-3">
                   <p className="text-sm">Subtotal: ₹{subtotal.toFixed(2)}</p>
-                  <p className="text-sm">Tax: ₹{tax.toFixed(2)}</p>
+                  <p className="text-sm">GST: ₹{gstAmount.toFixed(2)}</p>
+                  <p className="text-sm">Discount: ₹{discountAmount.toFixed(2)}</p>
                   <p className="text-sm font-semibold">Total: ₹{total.toFixed(2)}</p>
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={saveBill} className="px-3 py-2 rounded bg-primary-600 text-white hover:bg-primary-700">Save Bill</button>
+                  <button onClick={saveBill} className="px-3 py-2 rounded bg-primary-600 text-white hover:bg-primary-700">
+                    Save Bill
+                  </button>
                   <button
                     onClick={async () => {
                       try {
@@ -254,14 +426,51 @@ export default function AppointmentCaseView({ params }) {
                     Print / Generate PDF
                   </button>
                 </div>
+                <div className="border-t pt-4 space-y-3">
+                  <h5 className="font-semibold text-sm text-secondary-800">Invoice History</h5>
+                  {(caseData.invoices || []).length ? (
+                    <div className="space-y-3">
+                      {[...caseData.invoices]
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                        .map((invoice) => (
+                          <div key={invoice._id} className="rounded border border-secondary-200 p-3 bg-secondary-50">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-secondary-900">
+                                  Invoice #{invoice._id.slice(-6).toUpperCase()}
+                                </p>
+                                <p className="text-xs text-secondary-600">
+                                  Issued {invoice.issuedAt ? new Date(invoice.issuedAt).toLocaleDateString() : "-"} • Total ₹
+                                  {invoice.total?.toFixed(2) ?? "0.00"}
+                                </p>
+                              </div>
+                              <div className="flex flex-wrap gap-2 items-center">
+                                <span className="text-xs rounded-full bg-secondary-200 px-2 py-1">
+                                  {invoice.status || "Pending"}
+                                </span>
+                                <Link
+                                  href={`/invoices/${invoice._id}`}
+                                  className="text-xs px-3 py-1 rounded bg-secondary-100 text-secondary-900 hover:bg-secondary-200"
+                                >
+                                  View Invoice
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-secondary-500">No invoices generated yet.</p>
+                  )}
+                </div>
               </div>
             )}
 
             {activeTab === "notes" && (
               <div className="space-y-3">
                 <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  value={caseNotes}
+                  onChange={(e) => setCaseNotes(e.target.value)}
                   className="input w-full min-h-[120px]"
                   placeholder="Doctor's notes"
                 />

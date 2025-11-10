@@ -34,7 +34,7 @@ export default function DentalChartsPage() {
       try {
         setLoading(true)
         const res = await api.get('/patients')
-        setPatients(res.data)
+        setPatients(res.data.patients)
         setLoading(false)
       } catch (error) {
         console.error('Error fetching patients:', error)

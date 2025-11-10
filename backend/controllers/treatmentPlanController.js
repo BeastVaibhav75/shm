@@ -57,7 +57,7 @@ exports.getTreatmentPlanById = async (req, res) => {
 // Create new treatment plan
 exports.createTreatmentPlan = async (req, res) => {
   try {
-    const { patient, title, description, steps, totalCost, estimatedDuration, startDate } = req.body;
+    const { patient, title, description, steps, totalCost, estimatedDuration, startDate, caseId, doctor } = req.body;
     
     // Check if patient exists
     const patientExists = await Patient.findById(patient);
@@ -69,11 +69,12 @@ exports.createTreatmentPlan = async (req, res) => {
       patient,
       title,
       description,
-      doctor: req.user._id,
+      doctor: doctor || req.user._id,
       steps: steps || [],
       totalCost: totalCost || 0,
       estimatedDuration: estimatedDuration || 1,
       startDate: startDate || Date.now(),
+      caseId: caseId || undefined,
       status: 'active',
       progress: 0
     });
