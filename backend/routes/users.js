@@ -7,7 +7,8 @@ const {
   createUser, 
   updateUser, 
   deleteUser, 
-  getDoctors 
+  getDoctors,
+  resetUserPassword
 } = require('../controllers/userController');
 
 const router = express.Router();
@@ -31,6 +32,10 @@ const updateUserValidation = [
   body('isActive').optional().isBoolean().withMessage('isActive must be a boolean')
 ];
 
+const resetPasswordValidation = [
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+];
+
 // All routes require authentication
 router.use(authenticateToken);
 
@@ -41,5 +46,6 @@ router.get('/:id', authorize('admin'), getUserById);
 router.post('/', authorize('admin'), createUserValidation, createUser);
 router.put('/:id', authorize('admin'), updateUserValidation, updateUser);
 router.delete('/:id', authorize('admin'), deleteUser);
+router.put('/:id/reset-password', authorize('admin'), resetPasswordValidation, resetUserPassword);
 
 module.exports = router;

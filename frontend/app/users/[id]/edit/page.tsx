@@ -16,6 +16,8 @@ export default function EditUserPage() {
   const [form, setForm] = useState<UserForm>({ name:'', email:'', role:'', phone:'', specialization:'', isActive:true })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmNewPassword: '' })
+  const [resettingPassword, setResettingPassword] = useState(false)
 
   useEffect(() => { (async () => {
     try {
@@ -40,6 +42,32 @@ export default function EditUserPage() {
     } catch (e:any) { toast.error(e?.response?.data?.message||'Failed to update user') } finally { setSaving(false) }
   }
 
+  const resetPassword = async () => {
+    try {
+      if (!passwordForm.newPassword) {
+        toast.error('Enter a new password')
+        return
+      }
+      if (passwordForm.newPassword.length < 6) {
+        toast.error('Password must be at least 6 characters')
+        return
+      }
+      if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+        toast.error('Passwords do not match')
+        return
+      }
+      setResettingPassword(true)
+      await api.put(`/users/${id}/reset-password`, { newPassword: passwordForm.newPassword })
+      toast.success('Password reset successfully')
+      setPasswordForm({ newPassword: '', confirmNewPassword: '' })
+    } catch (e: any) {
+      const apiMessage = e?.response?.data?.errors?.[0]?.msg || e?.response?.data?.message
+      toast.error(apiMessage || 'Failed to reset password')
+    } finally {
+      setResettingPassword(false)
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -54,16 +82,56 @@ export default function EditUserPage() {
         {loading ? (
           <div className="bg-white rounded-lg shadow p-6 text-center"><p className="text-secondary-600">Loading user...</p></div>
         ) : (
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div><label className="label">Name *</label><input type="text" value={form.name} onChange={e=>change('name', e.target.value)} className="input" placeholder="Enter full name"/></div>
-              <div><label className="label">Email *</label><input type="email" value={form.email} onChange={e=>change('email', e.target.value)} className="input" placeholder="Enter email"/></div>
-              <div><label className="label">Role</label><select value={form.role} onChange={e=>change('role', e.target.value as Role)} className="input"><option value="">Select role</option><option value="admin">Admin</option><option value="doctor">Doctor</option><option value="receptionist">Receptionist</option></select></div>
-              <div><label className="label">Phone *</label><input type="text" value={form.phone} onChange={e=>change('phone', e.target.value)} className="input" placeholder="Enter phone number"/></div>
-              {form.role==='doctor' && (<div className="md:col-span-2"><label className="label">Specialization *</label><input type="text" value={form.specialization} onChange={e=>change('specialization', e.target.value)} className="input" placeholder="Enter specialization"/></div>)}
-              <div><label className="label">Status</label><div className="flex items-center space-x-2"><input id="isActive" type="checkbox" checked={form.isActive} onChange={e=>change('isActive', e.target.checked)} /><label htmlFor="isActive">Active</label></div></div>
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg shadow p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label className="label">Name *</label><input type="text" value={form.name} onChange={e=>change('name', e.target.value)} className="input" placeholder="Enter full name"/></div>
+                <div><label className="label">Email *</label><input type="email" value={form.email} onChange={e=>change('email', e.target.value)} className="input" placeholder="Enter email"/></div>
+                <div><label className="label">Role</label><select value={form.role} onChange={e=>change('role', e.target.value as Role)} className="input"><option value="">Select role</option><option value="admin">Admin</option><option value="doctor">Doctor</option><option value="receptionist">Receptionist</option></select></div>
+                <div><label className="label">Phone *</label><input type="text" value={form.phone} onChange={e=>change('phone', e.target.value)} className="input" placeholder="Enter phone number"/></div>
+                {form.role==='doctor' && (<div className="md:col-span-2"><label className="label">Specialization *</label><input type="text" value={form.specialization} onChange={e=>change('specialization', e.target.value)} className="input" placeholder="Enter specialization"/></div>)}
+                <div><label className="label">Status</label><div className="flex items-center space-x-2"><input id="isActive" type="checkbox" checked={form.isActive} onChange={e=>change('isActive', e.target.checked)} /><label htmlFor="isActive">Active</label></div></div>
+              </div>
+              <div className="flex justify-end"><button onClick={save} disabled={saving} className="btn btn-primary btn-md flex items-center space-x-2"><Save className="h-4 w-4"/><span>{saving?'Saving...':'Save Changes'}</span></button></div>
             </div>
-            <div className="flex justify-end"><button onClick={save} disabled={saving} className="btn btn-primary btn-md flex items-center space-x-2"><Save className="h-4 w-4"/><span>{saving?'Saving...':'Save Changes'}</span></button></div>
+
+            <div className="bg-white rounded-lg shadow p-6 space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold text-secondary-900">Reset Password</h2>
+                <p className="text-sm text-secondary-600">Set a temporary password for this user. They should change it after logging in.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="label">New Password *</label>
+                  <input
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    className="input"
+                    placeholder="Enter new password"
+                  />
+                </div>
+                <div>
+                  <label className="label">Confirm Password *</label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmNewPassword}
+                    onChange={e => setPasswordForm({ ...passwordForm, confirmNewPassword: e.target.value })}
+                    className="input"
+                    placeholder="Re-enter new password"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={resetPassword}
+                  disabled={resettingPassword}
+                  className="btn btn-outline btn-md"
+                >
+                  {resettingPassword ? 'Resetting...' : 'Reset Password'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
