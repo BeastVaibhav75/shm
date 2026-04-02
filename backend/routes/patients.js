@@ -16,6 +16,7 @@ const router = express.Router();
 // Validation rules
 const createPatientValidation = [
   body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
+  body('guardianName').trim().isLength({ min: 2 }).withMessage('Father/Spouse name must be at least 2 characters'),
   body('contact').isMobilePhone('en-IN').withMessage('Valid phone number is required'),
   body('age').isInt({ min: 0, max: 150 }).withMessage('Valid age is required'),
   body('gender').isIn(['male', 'female', 'other']).withMessage('Valid gender is required'),
@@ -29,6 +30,7 @@ const createPatientValidation = [
 
 const updatePatientValidation = [
   body('name').optional().trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
+  body('guardianName').optional({ checkFalsy: true }).trim().isLength({ min: 2 }).withMessage('Father/Spouse name must be at least 2 characters'),
   body('contact').optional().isMobilePhone('en-IN').withMessage('Valid phone number is required'),
   body('age').optional().isInt({ min: 0, max: 150 }).withMessage('Valid age is required'),
   body('gender').optional().isIn(['male', 'female', 'other']).withMessage('Valid gender is required'),

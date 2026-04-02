@@ -65,7 +65,7 @@ export default function TreatmentPlansPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Treatment Plans</h1>
           <Link href="/treatment-plans/create">

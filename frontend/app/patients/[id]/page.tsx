@@ -11,7 +11,9 @@ import { formatDate, formatTime, getStatusColor } from '@/lib/utils'
 
 interface Patient {
   _id: string
+  patientId?: string
   name?: string
+  guardianName?: string
   contact?: string
   age?: number
   gender?: 'male' | 'female' | 'other'
@@ -547,6 +549,14 @@ const renderTabContent = () => {
               <div>
                 <p className="text-sm text-secondary-500">Name</p>
                 <p className="text-secondary-900 font-medium text-lg">{patient.name || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-secondary-500">Patient ID</p>
+                <p className="text-secondary-900 font-medium">{patient.patientId || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-secondary-500">Father/Spouse Name</p>
+                <p className="text-secondary-900 font-medium">{patient.guardianName || '-'}</p>
               </div>
               <div>
                 <p className="text-sm text-secondary-500">Contact</p>

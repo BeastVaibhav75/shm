@@ -51,7 +51,7 @@ export default function PrescriptionsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Prescriptions</h1>
           <Link href="/prescriptions/create">

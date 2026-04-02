@@ -136,7 +136,7 @@ export default function CreatePrescriptionPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div>
         <h1 className="text-2xl font-bold mb-6">Create New Prescription</h1>
         
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">

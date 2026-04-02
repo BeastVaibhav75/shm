@@ -10,6 +10,7 @@ import toast from 'react-hot-toast'
 
 interface PatientForm {
   name: string
+  guardianName: string
   contact: string
   age: number | ''
   gender: 'male' | 'female' | 'other' | ''
@@ -27,6 +28,7 @@ export default function EditPatientPage() {
 
   const [form, setForm] = useState<PatientForm>({
     name: '',
+    guardianName: '',
     contact: '',
     age: '',
     gender: '',
@@ -47,6 +49,7 @@ export default function EditPatientPage() {
         const p = data?.patient || data
         setForm({
           name: p?.name || '',
+          guardianName: p?.guardianName || '',
           contact: p?.contact || '',
           age: typeof p?.age === 'number' ? p.age : '',
           gender: (p?.gender as any) || '',
@@ -74,6 +77,7 @@ export default function EditPatientPage() {
       setSaving(true)
       const payload: any = {
         name: form.name,
+        guardianName: form.guardianName,
         contact: form.contact,
         issue: form.issue,
       }
@@ -129,6 +133,16 @@ export default function EditPatientPage() {
                   onChange={(e) => handleChange('name', e.target.value)}
                   className="input"
                   placeholder="Enter full name"
+                />
+              </div>
+              <div>
+                <label className="label">Father/Spouse Name *</label>
+                <input
+                  type="text"
+                  value={form.guardianName}
+                  onChange={(e) => handleChange('guardianName', e.target.value)}
+                  className="input"
+                  placeholder="Enter father/spouse name"
                 />
               </div>
               <div>

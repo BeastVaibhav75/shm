@@ -92,6 +92,7 @@ const createPatient = async (req, res) => {
 
     const { 
       name, 
+      guardianName,
       contact, 
       age, 
       gender, 
@@ -118,6 +119,7 @@ const createPatient = async (req, res) => {
 
     const patient = new Patient({
       name,
+      guardianName,
       contact,
       age,
       gender,
@@ -166,6 +168,7 @@ const updatePatient = async (req, res) => {
 
     const { 
       name, 
+      guardianName,
       contact, 
       age, 
       gender, 
@@ -189,6 +192,7 @@ const updatePatient = async (req, res) => {
       req.params.id,
       {
         name,
+        guardianName,
         contact,
         age,
         gender,

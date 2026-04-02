@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import { api } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import { IndianRupee, FileText, BadgeCheck } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface InvoiceItem {
   description: string
@@ -36,6 +37,7 @@ interface Invoice {
 
 export default function InvoicesPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [statusFilter, setStatusFilter] = useState<string>('')
@@ -65,6 +67,14 @@ export default function InvoicesPage() {
             <h1 className="text-2xl font-bold text-secondary-900">Invoices</h1>
             <p className="text-secondary-600">Manage billing and payments</p>
           </div>
+          {(user?.role === 'admin' || user?.role === 'doctor') && (
+            <button
+              onClick={() => router.push('/invoices/create')}
+              className="btn btn-primary btn-md"
+            >
+              Create Invoice
+            </button>
+          )}
         </div>
 
         <div className="bg-white border border-secondary-200 rounded-lg p-4">

@@ -55,7 +55,7 @@ export default function DentalChartsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -22,7 +22,9 @@ import toast from 'react-hot-toast'
 
 interface Patient {
   _id: string
+  patientId?: string
   name: string
+  guardianName?: string
   contact: string
   age: number
   gender: string
@@ -51,6 +53,7 @@ export default function PatientsPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [newPatient, setNewPatient] = useState({
     name: '',
+    guardianName: '',
     contact: '',
     age: '',
     gender: 'male',
@@ -218,7 +221,7 @@ export default function PatientsPage() {
                               {patient.name}
                             </p>
                             <p className="text-sm text-secondary-500">
-                              ID: {patient._id.slice(-8)}
+                              {patient.patientId ? `Patient ID: ${patient.patientId}` : `ID: ${patient._id.slice(-8)}`}
                             </p>
                           </div>
                         </td>
@@ -337,6 +340,17 @@ export default function PatientsPage() {
                     />
                   </div>
 
+                  <div className="sm:col-span-2">
+                    <label className="label">Father/Spouse Name *</label>
+                    <input
+                      type="text"
+                      value={newPatient.guardianName}
+                      onChange={(e) => setNewPatient({ ...newPatient, guardianName: e.target.value })}
+                      className="input w-full"
+                      placeholder="Enter father/spouse name"
+                    />
+                  </div>
+
                   <div>
                     <label className="label">Phone *</label>
                     <input
@@ -451,6 +465,7 @@ export default function PatientsPage() {
                       setShowAddModal(false)
                       setNewPatient({
                         name: '',
+                        guardianName: '',
                         contact: '',
                         age: '',
                         gender: 'male',
@@ -471,6 +486,7 @@ export default function PatientsPage() {
                       try {
                         const payload: any = {
                           name: newPatient.name,
+                          guardianName: newPatient.guardianName,
                           contact: newPatient.contact,
                           age: Number(newPatient.age),
                           gender: newPatient.gender,
@@ -488,6 +504,7 @@ export default function PatientsPage() {
                         setShowAddModal(false)
                         setNewPatient({
                           name: '',
+                          guardianName: '',
                           contact: '',
                           age: '',
                           gender: 'male',

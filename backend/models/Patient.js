@@ -43,7 +43,20 @@ const treatmentRecordSchema = new mongoose.Schema({
 });
 
 const patientSchema = new mongoose.Schema({
+  patientId: {
+    type: String,
+    required: true,
+    unique: true,
+    sparse: true,
+    index: true,
+    trim: true
+  },
   name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  guardianName: {
     type: String,
     required: true,
     trim: true
@@ -105,5 +118,30 @@ const patientSchema = new mongoose.Schema({
 
 // Index for better search performance
 patientSchema.index({ name: 'text', contact: 'text', issue: 'text' });
+
+patientSchema.pre('validate', async function (next) {
+  try {
+    if (this.guardianName == null) this.guardianName = '';
+
+    if (this.patientId) return next();
+
+    const year = new Date().getFullYear();
+    const rand = () => Math.random().toString(36).slice(2, 6).toUpperCase();
+    const time = () => Date.now().toString(36).toUpperCase().slice(-6);
+
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const candidate = `SDH-${year}-${time()}${rand()}`;
+      const exists = await this.constructor.exists({ patientId: candidate });
+      if (!exists) {
+        this.patientId = candidate;
+        return next();
+      }
+    }
+
+    return next(new Error('Failed to generate unique patientId'));
+  } catch (err) {
+    return next(err);
+  }
+});
 
 module.exports = mongoose.model('Patient', patientSchema);

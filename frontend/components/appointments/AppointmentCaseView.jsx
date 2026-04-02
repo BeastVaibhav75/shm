@@ -178,7 +178,7 @@ export default function AppointmentCaseView({ params }) {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div>
           <div className="flex items-center justify-center h-64">
             <div className="loading-spinner h-8 w-8"></div>
           </div>
@@ -190,7 +190,7 @@ export default function AppointmentCaseView({ params }) {
   if (!caseData) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div>
           <p className="text-secondary-600">Case not found.</p>
         </div>
       </DashboardLayout>
@@ -201,7 +201,7 @@ export default function AppointmentCaseView({ params }) {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="bg-white rounded-lg border border-secondary-200 shadow-sm">
           <div className="p-4 flex flex-col md:flex-row md:items-center md:justify-between">
