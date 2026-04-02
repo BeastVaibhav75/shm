@@ -20,10 +20,11 @@ import {
 import { formatDate, formatTime, getStatusColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 interface Appointment {
   _id: string
+  caseId?: string
   patient: {
     _id: string
     name: string
@@ -66,6 +67,7 @@ function AppointmentsContent() {
   const [totalPages, setTotalPages] = useState(1)
   const [showAddModal, setShowAddModal] = useState(false)
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   useEffect(() => {
     if (searchParams.get('add') === 'true') {
@@ -423,6 +425,15 @@ function AppointmentsContent() {
                               <option value="cancelled">Cancelled</option>
                               <option value="rescheduled">Rescheduled</option>
                             </select>
+
+                            <button
+                              onClick={() => router.push(`/appointments/${appointment.caseId}`)}
+                              disabled={!appointment.caseId}
+                              className={`px-3 py-1 rounded text-xs ${appointment.caseId ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'}`}
+                            >
+                              View Details
+                            </button>
+
                             <button
                               onClick={() => handleDeleteAppointment(appointment._id)}
                               className="p-1 hover:bg-error-100 rounded"
