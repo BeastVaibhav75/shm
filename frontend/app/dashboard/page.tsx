@@ -369,7 +369,7 @@ export default function DashboardPage() {
                               <button
                                 onClick={() => router.push(`/appointments/${appointment.caseId}`)}
                                 disabled={!appointment.caseId}
-                                className={`px-3 py-1 rounded ${appointment.caseId ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'}`}
+                                className={`px-2 py-1 rounded text-xs ${appointment.caseId ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'}`}
                               >
                                 View Details
                               </button>

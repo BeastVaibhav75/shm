@@ -13,7 +13,6 @@ import {
   User,
   Stethoscope,
   CheckCircle,
-  XCircle,
   AlertCircle,
   MoreVertical
 } from 'lucide-react'
@@ -176,7 +175,7 @@ function AppointmentsContent() {
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-primary-600" />
       case 'cancelled':
-        return <XCircle className="h-4 w-4 text-error-600" />
+        return <AlertCircle className="h-4 w-4 text-error-600" />
       case 'rescheduled':
         return <AlertCircle className="h-4 w-4 text-warning-600" />
       default:
@@ -429,16 +428,9 @@ function AppointmentsContent() {
                             <button
                               onClick={() => router.push(`/appointments/${appointment.caseId}`)}
                               disabled={!appointment.caseId}
-                              className={`px-3 py-1 rounded text-xs ${appointment.caseId ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'}`}
+                              className={`px-2 py-1 rounded text-xs ${appointment.caseId ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'}`}
                             >
                               View Details
-                            </button>
-
-                            <button
-                              onClick={() => handleDeleteAppointment(appointment._id)}
-                              className="p-1 hover:bg-error-100 rounded"
-                            >
-                              <XCircle className="h-4 w-4 text-error-600" />
                             </button>
                           </div>
                         </td>
