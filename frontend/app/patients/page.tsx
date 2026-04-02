@@ -327,7 +327,7 @@ export default function PatientsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="label">Full Name</label>
+                    <label className="label">Full Name *</label>
                     <input
                       type="text"
                       value={newPatient.name}
@@ -338,7 +338,7 @@ export default function PatientsPage() {
                   </div>
 
                   <div>
-                    <label className="label">Phone</label>
+                    <label className="label">Phone *</label>
                     <input
                       type="tel"
                       value={newPatient.contact}
@@ -350,7 +350,7 @@ export default function PatientsPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="label">Age</label>
+                      <label className="label">Age *</label>
                       <input
                         type="number"
                         value={newPatient.age}
@@ -361,7 +361,7 @@ export default function PatientsPage() {
                       />
                     </div>
                     <div>
-                      <label className="label">Gender</label>
+                      <label className="label">Gender *</label>
                       <select
                         value={newPatient.gender}
                         onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
@@ -375,7 +375,7 @@ export default function PatientsPage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="label">Primary Issue</label>
+                    <label className="label">Primary Issue *</label>
                     <textarea
                       value={newPatient.issue}
                       onChange={(e) => setNewPatient({ ...newPatient, issue: e.target.value })}
@@ -385,7 +385,7 @@ export default function PatientsPage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="label">Assign Doctor</label>
+                    <label className="label">Assign Doctor *</label>
                     <select
                       value={newPatient.assignedDoctor || selectedDoctor}
                       onChange={(e) => setNewPatient({ ...newPatient, assignedDoctor: e.target.value })}

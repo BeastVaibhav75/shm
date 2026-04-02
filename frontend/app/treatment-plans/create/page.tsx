@@ -35,7 +35,7 @@ export default function CreateTreatmentPlanPage() {
       try {
         const [patientsRes, doctorsRes] = await Promise.all([
           api.get('/patients'),
-          api.get('/users?role=doctor')
+          api.get('/users/doctors')
         ])
 
         let patientsData = Array.isArray(patientsRes.data) ? patientsRes.data : patientsRes.data?.patients || []
@@ -52,17 +52,6 @@ export default function CreateTreatmentPlanPage() {
         }
 
         let doctorsData = Array.isArray(doctorsRes.data) ? doctorsRes.data : doctorsRes.data?.doctors || doctorsRes.data?.users || []
-        if (presetDoctorId && !doctorsData.some((doctor: any) => doctor._id === presetDoctorId)) {
-          try {
-            const doctorRes = await api.get(`/users/${presetDoctorId}`)
-            const doctor = doctorRes.data?.user || doctorRes.data
-            if (doctor) {
-              doctorsData = [...doctorsData, doctor]
-            }
-          } catch (doctorErr) {
-            console.warn('Failed to fetch preset doctor for treatment plan:', doctorErr)
-          }
-        }
 
         setPatients(patientsData)
         setDoctors(doctorsData)

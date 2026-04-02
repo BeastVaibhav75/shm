@@ -19,10 +19,10 @@ const createPatientValidation = [
   body('contact').isMobilePhone('en-IN').withMessage('Valid phone number is required'),
   body('age').isInt({ min: 0, max: 150 }).withMessage('Valid age is required'),
   body('gender').isIn(['male', 'female', 'other']).withMessage('Valid gender is required'),
-  body('issue').trim().isLength({ min: 5 }).withMessage('Issue description must be at least 5 characters'),
+  body('issue').trim().isLength({ min: 1 }).withMessage('Issue is required'),
   body('assignedDoctor').optional().isMongoId().withMessage('Valid doctor ID is required'),
   body('address').optional().trim(),
-  body('emergencyContact').optional().isMobilePhone('en-IN').withMessage('Valid emergency contact is required'),
+  body('emergencyContact').optional({ checkFalsy: true }).isMobilePhone('en-IN').withMessage('Valid emergency contact is required'),
   body('medicalHistory').optional().trim(),
   body('allergies').optional().trim()
 ];
@@ -32,10 +32,10 @@ const updatePatientValidation = [
   body('contact').optional().isMobilePhone('en-IN').withMessage('Valid phone number is required'),
   body('age').optional().isInt({ min: 0, max: 150 }).withMessage('Valid age is required'),
   body('gender').optional().isIn(['male', 'female', 'other']).withMessage('Valid gender is required'),
-  body('issue').optional().trim().isLength({ min: 5 }).withMessage('Issue description must be at least 5 characters'),
+  body('issue').optional({ checkFalsy: true }).trim().isLength({ min: 1 }).withMessage('Issue is required'),
   body('assignedDoctor').optional().isMongoId().withMessage('Valid doctor ID is required'),
   body('address').optional().trim(),
-  body('emergencyContact').optional().isMobilePhone('en-IN').withMessage('Valid emergency contact is required'),
+  body('emergencyContact').optional({ checkFalsy: true }).isMobilePhone('en-IN').withMessage('Valid emergency contact is required'),
   body('medicalHistory').optional().trim(),
   body('allergies').optional().trim()
 ];

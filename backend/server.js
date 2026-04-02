@@ -34,6 +34,10 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'Shuchi Dental Hospital API is running!' });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
