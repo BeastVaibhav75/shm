@@ -52,7 +52,7 @@ export default function PrescriptionDetailPage({ params }: { params: { id: strin
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div>
           <div className="flex items-center justify-center h-64">
             <div className="loading-spinner h-8 w-8"></div>
           </div>
@@ -64,7 +64,7 @@ export default function PrescriptionDetailPage({ params }: { params: { id: strin
   if (!prescription) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div>
           <p className="text-secondary-600">Prescription not found.</p>
         </div>
       </DashboardLayout>
@@ -73,7 +73,7 @@ export default function PrescriptionDetailPage({ params }: { params: { id: strin
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-secondary-900">Prescription</h1>

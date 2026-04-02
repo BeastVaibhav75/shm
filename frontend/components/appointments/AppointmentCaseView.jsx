@@ -23,6 +23,8 @@ export default function AppointmentCaseView({ params }) {
   const [gstPercent, setGstPercent] = useState(0)
   const [discountPercent, setDiscountPercent] = useState(0)
   const [billNotes, setBillNotes] = useState("")
+  const [billStatus, setBillStatus] = useState("Pending")
+  const [billPaymentMethod, setBillPaymentMethod] = useState("cash")
   const [caseNotes, setCaseNotes] = useState("")
 
   useEffect(() => {
@@ -119,7 +121,9 @@ export default function AppointmentCaseView({ params }) {
         items: preparedItems,
         gstPercent: Number(gstPercent) || 0,
         discountPercent: Number(discountPercent) || 0,
-        notes: billNotes
+        notes: billNotes,
+        status: billStatus,
+        paymentMethod: billPaymentMethod
       }
       const res = await api.post(`/appointments/${case_id}/bill`, payload)
       const invoice = res.data?.invoice
@@ -333,6 +337,34 @@ export default function AppointmentCaseView({ params }) {
                   <button onClick={addBillItem} className="px-3 py-2 rounded bg-secondary-100 text-secondary-900">
                     Add Charge
                   </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-secondary-600 block mb-1">Bill Status</label>
+                    <select
+                      value={billStatus}
+                      onChange={(e) => setBillStatus(e.target.value)}
+                      className="input"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Paid">Paid</option>
+                    </select>
+                  </div>
+                  {billStatus === "Paid" && (
+                    <div>
+                      <label className="text-xs font-medium text-secondary-600 block mb-1">Payment Method</label>
+                      <select
+                        value={billPaymentMethod}
+                        onChange={(e) => setBillPaymentMethod(e.target.value)}
+                        className="input"
+                      >
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="upi">UPI</option>
+                        <option value="bank">Bank</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-3">
                   {billItems.map((item, idx) => (

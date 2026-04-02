@@ -134,7 +134,7 @@ const saveBillForCase = async (req, res) => {
     const appointment = await Appointment.findOne({ caseId: case_id }).populate('patient').populate('doctor');
     if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
 
-    const { items = [], gstPercent = 0, discountPercent = 0, notes = '' } = req.body;
+    const { items = [], gstPercent = 0, discountPercent = 0, notes = '', status = 'Pending', paymentMethod = 'cash' } = req.body;
 
     const invoice = new Invoice({
       caseId: case_id,
@@ -146,6 +146,17 @@ const saveBillForCase = async (req, res) => {
       notes
     });
     await invoice.save();
+
+    // If user marks it paid at creation time, record a full payment.
+    if (String(status).toLowerCase() === 'paid') {
+      invoice.payments.push({
+        amount: invoice.total || 0,
+        method: ['cash', 'card', 'upi', 'bank'].includes(paymentMethod) ? paymentMethod : 'cash',
+        note: 'Marked paid while creating bill'
+      });
+      await invoice.save();
+    }
+
     res.status(201).json({ message: 'Bill saved', invoice });
   } catch (error) {
     console.error('Save bill error:', error);
