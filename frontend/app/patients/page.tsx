@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import DashboardLayout from '@/components/layout/DashboardLayout'
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { formatDate, formatPhoneNumber, getGenderColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { useSearchParams } from 'next/navigation'
 
 interface Patient {
   _id: string
@@ -42,7 +43,7 @@ interface Patient {
   createdAt: string
 }
 
-export default function PatientsPage() {
+function PatientsContent() {
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -51,6 +52,13 @@ export default function PatientsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [showAddModal, setShowAddModal] = useState(false)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.get('add') === 'true') {
+      setShowAddModal(true)
+    }
+  }, [searchParams])
   const [newPatient, setNewPatient] = useState({
     name: '',
     guardianName: '',
@@ -531,5 +539,13 @@ export default function PatientsPage() {
         )}
       </div>
     </DashboardLayout>
+  )
+}
+
+export default function PatientsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="loading-spinner h-8 w-8"></div></div>}>
+      <PatientsContent />
+    </Suspense>
   )
 }

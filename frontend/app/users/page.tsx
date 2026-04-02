@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import DashboardLayout from '@/components/layout/DashboardLayout'
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { getRoleColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { useSearchParams } from 'next/navigation'
 
 interface User {
   _id: string
@@ -33,7 +34,7 @@ interface User {
   createdAt: string
 }
 
-export default function UsersPage() {
+function UsersContent() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -41,6 +42,13 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [showAddModal, setShowAddModal] = useState(false)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.get('add') === 'true') {
+      setShowAddModal(true)
+    }
+  }, [searchParams])
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
@@ -451,5 +459,19 @@ export default function UsersPage() {
         )}
       </div>
     </DashboardLayout>
+  )
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="loading-spinner h-8 w-8"></div>
+        </div>
+      </DashboardLayout>
+    }>
+      <UsersContent />
+    </Suspense>
   )
 }

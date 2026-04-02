@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { api } from '@/lib/api'
@@ -20,6 +20,7 @@ import {
 import { formatDate, formatTime, getStatusColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSearchParams } from 'next/navigation'
 
 interface Appointment {
   _id: string
@@ -53,7 +54,7 @@ interface Patient {
   gender?: string
 }
 
-export default function AppointmentsPage() {
+function AppointmentsContent() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -64,6 +65,13 @@ export default function AppointmentsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [showAddModal, setShowAddModal] = useState(false)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.get('add') === 'true') {
+      setShowAddModal(true)
+    }
+  }, [searchParams])
   const [patients, setPatients] = useState<Patient[]>([])
   const [newAppointment, setNewAppointment] = useState({
     patient: '',
@@ -624,5 +632,19 @@ export default function AppointmentsPage() {
         )}
       </div>
     </DashboardLayout>
+  )
+}
+
+export default function AppointmentsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="loading-spinner h-8 w-8"></div>
+        </div>
+      </DashboardLayout>
+    }>
+      <AppointmentsContent />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { api } from '@/lib/api'
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { useSearchParams } from 'next/navigation'
 
 interface Treatment {
   _id: string
@@ -43,12 +44,20 @@ interface Patient {
   treatmentHistory: Treatment[]
 }
 
-export default function TreatmentsPage() {
+function TreatmentsContent() {
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.get('add') === 'true') {
+      // Focus on search or something? 
+      // For now, let's just make the search input more prominent if it's from "add"
+    }
+  }, [searchParams])
   const [newTreatment, setNewTreatment] = useState({
     type: '',
     notes: '',
@@ -320,5 +329,19 @@ export default function TreatmentsPage() {
         )}
       </div>
     </DashboardLayout>
+  )
+}
+
+export default function TreatmentsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="loading-spinner h-8 w-8"></div>
+        </div>
+      </DashboardLayout>
+    }>
+      <TreatmentsContent />
+    </Suspense>
   )
 }

@@ -229,8 +229,57 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Appointments and Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Quick Actions */}
+        <div className="bg-white rounded-lg border border-secondary-200 shadow-sm mb-6">
+          <div className="p-4 border-b border-secondary-200 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-secondary-900">Quick Actions</h3>
+              <p className="text-sm text-secondary-500">Common tasks and shortcuts</p>
+            </div>
+          </div>
+          <div className="p-4">
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={() => router.push('/patients?add=true')}
+                className="flex items-center px-4 py-2 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors text-primary-900 font-medium border border-primary-100"
+              >
+                <Users className="h-5 w-5 mr-2 text-primary-600" />
+                Add Patient
+              </button>
+              
+              <button
+                onClick={() => router.push('/appointments?add=true')}
+                className="flex items-center px-4 py-2 bg-success-50 rounded-lg hover:bg-success-100 transition-colors text-success-900 font-medium border border-success-100"
+              >
+                <Calendar className="h-5 w-5 mr-2 text-success-600" />
+                Book Appointment
+              </button>
+              
+              {user?.role === 'doctor' && (
+                <button
+                  onClick={() => router.push('/treatments?add=true')}
+                  className="flex items-center px-4 py-2 bg-warning-50 rounded-lg hover:bg-warning-100 transition-colors text-warning-900 font-medium border border-warning-100"
+                >
+                  <Stethoscope className="h-5 w-5 mr-2 text-warning-600" />
+                  Add Treatment
+                </button>
+              )}
+              
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => router.push('/users')}
+                  className="flex items-center px-4 py-2 bg-error-50 rounded-lg hover:bg-error-100 transition-colors text-error-900 font-medium border border-error-100"
+                >
+                  <UserCheck className="h-5 w-5 mr-2 text-error-600" />
+                  Manage Users
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 gap-6">
           {/* Appointments Section */}
           <div className="bg-white rounded-lg border border-secondary-200 shadow-sm h-full">
             <div className="p-4 border-b border-secondary-200">
@@ -370,54 +419,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg border border-secondary-200 shadow-sm h-full">
-            <div className="p-4 border-b border-secondary-200">
-              <h3 className="text-lg font-semibold text-secondary-900">Quick Actions</h3>
-              <p className="text-sm text-secondary-500 mt-1">
-                Common tasks and shortcuts
-              </p>
-            </div>
-            <div className="p-4">
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => router.push('/patients')}
-                  className="p-3 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors text-center"
-                >
-                  <Users className="h-5 w-5 text-primary-600 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-primary-900">Add Patient</p>
-                </button>
-                
-                <button
-                  onClick={() => router.push('/appointments')}
-                  className="p-3 bg-success-50 rounded-lg hover:bg-success-100 transition-colors text-center"
-                >
-                  <Calendar className="h-5 w-5 text-success-600 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-success-900">Book Appointment</p>
-                </button>
-                
-                {user?.role === 'doctor' && (
-                  <button
-                    onClick={() => router.push('/treatments')}
-                    className="p-3 bg-warning-50 rounded-lg hover:bg-warning-100 transition-colors text-center"
-                  >
-                    <Stethoscope className="h-5 w-5 text-warning-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-warning-900">Add Treatment</p>
-                  </button>
-                )}
-                
-                {user?.role === 'admin' && (
-                  <button
-                    onClick={() => router.push('/users')}
-                    className="p-3 bg-error-50 rounded-lg hover:bg-error-100 transition-colors text-center"
-                  >
-                    <UserCheck className="h-5 w-5 text-error-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-error-900">Manage Users</p>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </DashboardLayout>
