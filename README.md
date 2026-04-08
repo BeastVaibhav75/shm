@@ -99,7 +99,7 @@ npm install
 
 Create a `.env.local` file in the frontend directory:
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_URL=https://shm-2a2j.onrender.com/api
 ```
 
 ### 4. Database Setup

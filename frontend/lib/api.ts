@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'https://shm-2a2j.onrender.com').replace(/\/+$/, '')
 const API_URL = `${API_BASE}/api`
 
 export const api = axios.create({
