@@ -136,9 +136,26 @@ exports.getIncomeSummary = async (req, res) => {
       if (to) match.issuedAt.$lte = new Date(to);
     }
     const groupId = period === 'monthly' ? { year: { $year: '$issuedAt' }, month: { $month: '$issuedAt' } } : { year: { $year: '$issuedAt' }, day: { $dayOfYear: '$issuedAt' } };
+    
     const summary = await Invoice.aggregate([
       { $match: match },
-      { $group: { _id: groupId, totalIncome: { $sum: '$total' }, count: { $sum: 1 } } },
+      { 
+        $group: { 
+          _id: groupId, 
+          totalIncome: { $sum: '$total' }, 
+          paidIncome: { 
+            $sum: { 
+              $cond: [{ $eq: ['$status', 'Paid'] }, '$total', 0] 
+            } 
+          },
+          pendingIncome: { 
+            $sum: { 
+              $cond: [{ $ne: ['$status', 'Paid'] }, '$total', 0] 
+            } 
+          },
+          count: { $sum: 1 } 
+        } 
+      },
       { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
     ]);
     res.json({ summary });

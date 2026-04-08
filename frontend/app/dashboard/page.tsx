@@ -47,7 +47,13 @@ export default function DashboardPage() {
   const [appointments, setAppointments] = useState<AppointmentItem[]>([])
   const [appointmentsFilter, setAppointmentsFilter] = useState<'yesterday'|'today'|'tomorrow'|'all'>('today')
   const [loading, setLoading] = useState(true)
-  const [finance, setFinance] = useState<{ incomeToday?: number; incomeMonthly?: number; lowStockCount?: number; expensesMonthly?: number }>({})
+  const [finance, setFinance] = useState<{ 
+    incomePaidToday?: number; 
+    incomePendingToday?: number; 
+    incomePaidMonthly?: number; 
+    incomePendingMonthly?: number; 
+    lowStockCount?: number 
+  }>({})
   const router = useRouter()
 
   useEffect(() => {
@@ -80,6 +86,31 @@ export default function DashboardPage() {
       })
 
       setAppointments(appointmentsData)
+
+      // Fetch financial stats for admin
+      if (user?.role === 'admin') {
+        const today = new Date().toISOString().split('T')[0]
+        const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+        
+        const [todayIncome, monthlyIncome, inventoryStats] = await Promise.all([
+          api.get(`/invoices/summary/income?from=${today}&to=${today}`),
+          api.get(`/invoices/summary/income?period=monthly&from=${firstDayOfMonth}`),
+          api.get('/inventory/stats')
+        ])
+
+        const todaySummary = todayIncome.data.summary[0] || { paidIncome: 0, pendingIncome: 0 }
+        const monthlySummary = monthlyIncome.data.summary.find((s: any) => 
+          s._id.month === (new Date().getMonth() + 1) && s._id.year === new Date().getFullYear()
+        ) || { paidIncome: 0, pendingIncome: 0 }
+
+        setFinance({
+          incomePaidToday: todaySummary.paidIncome,
+          incomePendingToday: todaySummary.pendingIncome,
+          incomePaidMonthly: monthlySummary.paidIncome,
+          incomePendingMonthly: monthlySummary.pendingIncome,
+          lowStockCount: inventoryStats.data.lowStockCount || 0
+        })
+      }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
     } finally {
@@ -389,24 +420,43 @@ export default function DashboardPage() {
           {/* Finance & Inventory Widgets (Admin only) */}
           {user?.role === 'admin' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              {/* Today's Income */}
               <div onClick={() => router.push('/invoices')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-secondary-600">Income (Today)</p>
+                  <div className="p-2 bg-success-100 rounded-full"><IndianRupee className="h-4 w-4 text-success-600" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-sm font-medium text-secondary-600">Income (Today)</p>
-                    <p className="text-2xl font-bold text-secondary-900 mt-1">₹{finance?.incomeToday || 0}</p>
+                    <p className="text-xs text-secondary-500">Paid</p>
+                    <p className="text-lg font-bold text-success-600">₹{finance?.incomePaidToday || 0}</p>
                   </div>
-                  <div className="p-3 bg-success-100 rounded-full"><IndianRupee className="h-5 w-5 text-success-600" /></div>
+                  <div>
+                    <p className="text-xs text-secondary-500">Pending</p>
+                    <p className="text-lg font-bold text-warning-600">₹{finance?.incomePendingToday || 0}</p>
+                  </div>
                 </div>
               </div>
+
+              {/* Monthly Income */}
               <div onClick={() => router.push('/invoices')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-secondary-600">Income (Monthly)</p>
+                  <div className="p-2 bg-primary-100 rounded-full"><TrendingUp className="h-4 w-4 text-primary-600" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-sm font-medium text-secondary-600">Income (Monthly)</p>
-                    <p className="text-2xl font-bold text-secondary-900 mt-1">₹{finance?.incomeMonthly || 0}</p>
+                    <p className="text-xs text-secondary-500">Paid</p>
+                    <p className="text-lg font-bold text-primary-600">₹{finance?.incomePaidMonthly || 0}</p>
                   </div>
-                  <div className="p-3 bg-primary-100 rounded-full"><TrendingUp className="h-5 w-5 text-primary-600" /></div>
+                  <div>
+                    <p className="text-xs text-secondary-500">Pending</p>
+                    <p className="text-lg font-bold text-warning-600">₹{finance?.incomePendingMonthly || 0}</p>
+                  </div>
                 </div>
               </div>
+
+              {/* Low Stock Items */}
               <div onClick={() => router.push('/inventory')} className="bg-white rounded-lg border border-secondary-200 p-4 shadow-sm h-full cursor-pointer hover:bg-secondary-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div>
