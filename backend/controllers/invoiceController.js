@@ -128,37 +128,67 @@ exports.deleteInvoice = async (req, res) => {
 
 exports.getIncomeSummary = async (req, res) => {
   try {
-    const { period = 'daily', from, to } = req.query;
-    const match = {};
-    if (from || to) {
-      match.issuedAt = {};
-      if (from) match.issuedAt.$gte = new Date(from);
-      if (to) match.issuedAt.$lte = new Date(to);
-    }
-    const groupId = period === 'monthly' ? { year: { $year: '$issuedAt' }, month: { $month: '$issuedAt' } } : { year: { $year: '$issuedAt' }, day: { $dayOfYear: '$issuedAt' } };
+    const { from, to } = req.query;
+    const matchIssuedAt = {};
+    const matchPaymentDate = {};
     
+    if (from || to) {
+      matchIssuedAt.issuedAt = {};
+      matchPaymentDate['payments.date'] = {};
+      if (from) {
+        matchIssuedAt.issuedAt.$gte = new Date(from);
+        matchPaymentDate['payments.date'].$gte = new Date(from);
+      }
+      if (to) {
+        const endDate = new Date(to);
+        endDate.setHours(23, 59, 59, 999);
+        matchIssuedAt.issuedAt.$lte = endDate;
+        matchPaymentDate['payments.date'].$lte = endDate;
+      }
+    }
+
     const summary = await Invoice.aggregate([
-      { $match: match },
-      { 
-        $group: { 
-          _id: groupId, 
-          totalIncome: { $sum: '$total' }, 
-          paidIncome: { 
-            $sum: { 
-              $cond: [{ $eq: ['$status', 'Paid'] }, '$total', 0] 
-            } 
-          },
-          pendingIncome: { 
-            $sum: { 
-              $cond: [{ $ne: ['$status', 'Paid'] }, '$total', 0] 
-            } 
-          },
-          count: { $sum: 1 } 
-        } 
-      },
-      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+      {
+        $facet: {
+          paid: [
+            { $unwind: '$payments' },
+            { $match: matchPaymentDate },
+            { $group: { _id: null, total: { $sum: '$payments.amount' } } }
+          ],
+          pending: [
+            { $match: matchIssuedAt },
+            {
+              $project: {
+                balance: { 
+                  $subtract: [
+                    '$total', 
+                    { $sum: '$payments.amount' }
+                  ] 
+                }
+              }
+            },
+            { $group: { _id: null, total: { $sum: '$balance' } } }
+          ]
+        }
+      }
     ]);
-    res.json({ summary });
+
+    const paidIncome = summary[0].paid[0]?.total || 0;
+    const pendingIncome = summary[0].pending[0]?.total || 0;
+
+    const dateForId = from ? new Date(from) : new Date();
+    res.json({
+      summary: [{
+        _id: {
+          year: dateForId.getFullYear(),
+          month: dateForId.getMonth() + 1,
+          day: dateForId.getDate()
+        },
+        paidIncome,
+        pendingIncome,
+        totalIncome: paidIncome + pendingIncome
+      }]
+    });
   } catch (error) {
     console.error('Income summary error:', error);
     res.status(500).json({ message: 'Failed to fetch income summary' });
